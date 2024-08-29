@@ -3,6 +3,7 @@
 
 const FEISHIN_WS_URL = 'ws://localhost:4333'; // Default URL, make this configurable
 let feishinWs = null;
+let currentPlaybackStatus = 'PAUSED'; // Default to paused
 
 const playPauseAction = new Action('de.felitendo.feishin.playpause');
 const nextAction = new Action('de.felitendo.feishin.next');
@@ -52,6 +53,7 @@ function authenticate(username, password) {
 }
 
 function handleFeishinMessage(data) {
+    console.log('Received message from Feishin:', data);
     switch(data.event) {
         case 'state':
             updateAllButtons(data.data);
@@ -75,17 +77,26 @@ function updateAllButtons(state) {
 }
 
 function updatePlayPauseButton(status) {
-    // Update the Play/Pause button based on current status
-    playPauseAction.setImage(status === 'PLAYING' ? 'images/pause.png' : 'images/play.png');
+    console.log('Updating play/pause button with status:', status);
+    if (typeof status === 'string') {
+        currentPlaybackStatus = status.toUpperCase();
+    } else if (typeof status === 'boolean') {
+        currentPlaybackStatus = status ? 'PLAYING' : 'PAUSED';
+    } else {
+        console.error('Unexpected status type:', typeof status);
+        return;
+    }
+    
+    const isPlaying = currentPlaybackStatus === 'PLAYING';
+    playPauseAction.setImage(isPlaying ? 'images/pause.png' : 'images/play.png');
+    console.log('Updated play/pause button. Current status:', currentPlaybackStatus);
 }
 
 function updateShuffleButton(shuffleState) {
-    // Update the Shuffle button based on current state
     shuffleAction.setImage(shuffleState ? 'images/shuffle_on.png' : 'images/shuffle_off.png');
 }
 
 function updateRepeatButton(repeatState) {
-    // Update the Repeat button based on current state
     switch(repeatState) {
         case 'NONE':
             repeatAction.setImage('images/repeat_off.png');
@@ -101,7 +112,12 @@ function updateRepeatButton(repeatState) {
 
 playPauseAction.onKeyUp(({ action, context, device, event, payload }) => {
     if (feishinWs && feishinWs.readyState === WebSocket.OPEN) {
-        feishinWs.send(JSON.stringify({ event: 'play' }));
+        const command = currentPlaybackStatus === 'PLAYING' ? 'pause' : 'play';
+        feishinWs.send(JSON.stringify({ event: command }));
+        console.log('Sent command to Feishin:', command);
+        
+        // Temporarily update the button state
+        updatePlayPauseButton(command === 'play' ? 'PLAYING' : 'PAUSED');
     }
 });
 
