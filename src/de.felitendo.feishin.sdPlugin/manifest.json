@@ -1,0 +1,99 @@
+{
+    "SDKVersion": 2,
+    "Author": "Felitendo",
+    "CodePath": "app.html",
+    "Description": "Control Feishin, a modern self-hosted music player",
+    "Name": "Feishin",
+    "Icon": "actions/images/pluginIcon",
+    "URL": "https://github.com/jeffvli/feishin",
+    "Version": "0.0.1",
+    "Software": {
+        "MinimumVersion": "5.0"
+    },
+    "OS": [
+        {
+            "Platform": "mac",
+            "MinimumVersion": "10.11"
+        },
+        {
+            "Platform": "windows",
+            "MinimumVersion": "10"
+        }
+    ],
+    "Category": "Feishin",
+    "CategoryIcon": "actions/images/categoryIcon",
+    "Actions": [
+        {
+            "Icon": "actions/images/actionIcon",
+            "Name": "Now Playing",
+            "States": [
+                {
+                    "Image": "actions/images/keyIcon"
+                }
+            ],
+            "Tooltip": "Show currently playing track",
+            "UUID": "de.felitendo.feishin.nowplaying",
+            "PropertyInspectorPath": "propertyinspector/index.html"
+        },
+        {
+            "Icon": "actions/images/actionIcon",
+            "Name": "Play/Pause",
+            "States": [
+                {
+                    "Image": "actions/images/keyIcon"
+                }
+            ],
+            "Tooltip": "Play or pause the current track",
+            "UUID": "de.felitendo.feishin.playpause",
+            "PropertyInspectorPath": "propertyinspector/index.html"
+        },
+        {
+            "Icon": "actions/images/actionIcon",
+            "Name": "Next",
+            "States": [
+                {
+                    "Image": "actions/images/keyIcon"
+                }
+            ],
+            "Tooltip": "Play the next track",
+            "UUID": "de.felitendo.feishin.next",
+            "PropertyInspectorPath": "propertyinspector/index.html"
+        },
+        {
+            "Icon": "actions/images/actionIcon",
+            "Name": "Previous",
+            "States": [
+                {
+                    "Image": "actions/images/keyIcon"
+                }
+            ],
+            "Tooltip": "Play the previous track",
+            "UUID": "de.felitendo.feishin.previous",
+            "PropertyInspectorPath": "propertyinspector/index.html"
+        },
+        {
+            "Icon": "actions/images/actionIcon",
+            "Name": "Shuffle",
+            "States": [
+                {
+                    "Image": "actions/images/keyIcon"
+                }
+            ],
+            "Tooltip": "Toggle shuffle mode",
+            "UUID": "de.felitendo.feishin.shuffle",
+            "PropertyInspectorPath": "propertyinspector/index.html"
+        },
+        {
+            "Icon": "actions/images/actionIcon",
+            "Name": "Repeat",
+            "States": [
+                {
+                    "Image": "actions/images/keyIcon"
+                }
+            ],
+            "Tooltip": "Toggle repeat mode",
+            "UUID": "de.felitendo.feishin.repeat",
+            "PropertyInspectorPath": "propertyinspector/index.html"
+        }
+    ]
+}
