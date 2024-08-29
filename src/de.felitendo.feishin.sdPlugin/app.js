@@ -4,7 +4,6 @@
 const FEISHIN_WS_URL = 'ws://localhost:4333'; // Default URL, make this configurable
 let feishinWs = null;
 
-const nowPlayingAction = new Action('de.felitendo.feishin.nowplaying');
 const playPauseAction = new Action('de.felitendo.feishin.playpause');
 const nextAction = new Action('de.felitendo.feishin.next');
 const previousAction = new Action('de.felitendo.feishin.previous');
@@ -60,9 +59,6 @@ function handleFeishinMessage(data) {
         case 'playback':
             updatePlayPauseButton(data.data);
             break;
-        case 'song':
-            updateNowPlayingButton(data.data);
-            break;
         case 'shuffle':
             updateShuffleButton(data.data);
             break;
@@ -73,15 +69,9 @@ function handleFeishinMessage(data) {
 }
 
 function updateAllButtons(state) {
-    updateNowPlayingButton(state.song);
     updatePlayPauseButton(state.status);
     updateShuffleButton(state.shuffle);
     updateRepeatButton(state.repeat);
-}
-
-function updateNowPlayingButton(song) {
-    // Update the Now Playing button with song info
-    nowPlayingAction.setTitle(song ? `${song.title}\n${song.artist}` : 'Not Playing');
 }
 
 function updatePlayPauseButton(status) {
@@ -108,10 +98,6 @@ function updateRepeatButton(repeatState) {
             break;
     }
 }
-
-nowPlayingAction.onKeyUp(({ action, context, device, event, payload }) => {
-    // For now, this button just displays info, so we don't need to do anything on key press
-});
 
 playPauseAction.onKeyUp(({ action, context, device, event, payload }) => {
     if (feishinWs && feishinWs.readyState === WebSocket.OPEN) {
