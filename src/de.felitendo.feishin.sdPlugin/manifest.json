@@ -5,7 +5,7 @@
     "Description": "Control Feishin, a modern self-hosted music player",
     "Name": "Feishin",
     "Icon": "actions/images/pluginIcon",
-    "URL": "https://github.com/jeffvli/feishin",
+    "URL": "https://github.com/Felodeck/Feishin-Plugin",
     "Version": "0.0.1",
     "Software": {
         "MinimumVersion": "5.0"
@@ -24,23 +24,11 @@
     "CategoryIcon": "actions/images/categoryIcon",
     "Actions": [
         {
-            "Icon": "actions/images/actionIcon",
-            "Name": "Now Playing",
-            "States": [
-                {
-                    "Image": "actions/images/keyIcon"
-                }
-            ],
-            "Tooltip": "Show currently playing track",
-            "UUID": "de.felitendo.feishin.nowplaying",
-            "PropertyInspectorPath": "propertyinspector/index.html"
-        },
-        {
-            "Icon": "actions/images/actionIcon",
+            "Icon": "actions/images/ppactionIcon",
             "Name": "Play/Pause",
             "States": [
                 {
-                    "Image": "actions/images/keyIcon"
+                    "Image": "actions/images/ppactionIcon"
                 }
             ],
             "Tooltip": "Play or pause the current track",
@@ -48,11 +36,11 @@
             "PropertyInspectorPath": "propertyinspector/index.html"
         },
         {
-            "Icon": "actions/images/actionIcon",
+            "Icon": "actions/images/nextactionIcon",
             "Name": "Next",
             "States": [
                 {
-                    "Image": "actions/images/keyIcon"
+                    "Image": "actions/images/nextactionIcon"
                 }
             ],
             "Tooltip": "Play the next track",
@@ -60,11 +48,11 @@
             "PropertyInspectorPath": "propertyinspector/index.html"
         },
         {
-            "Icon": "actions/images/actionIcon",
+            "Icon": "actions/images/previousactionIcon",
             "Name": "Previous",
             "States": [
                 {
-                    "Image": "actions/images/keyIcon"
+                    "Image": "actions/images/previousactionIcon"
                 }
             ],
             "Tooltip": "Play the previous track",
@@ -72,11 +60,11 @@
             "PropertyInspectorPath": "propertyinspector/index.html"
         },
         {
-            "Icon": "actions/images/actionIcon",
+            "Icon": "actions/images/shuffleactionIcon",
             "Name": "Shuffle",
             "States": [
                 {
-                    "Image": "actions/images/keyIcon"
+                    "Image": "actions/images/shuffleactionIcon"
                 }
             ],
             "Tooltip": "Toggle shuffle mode",
@@ -84,11 +72,11 @@
             "PropertyInspectorPath": "propertyinspector/index.html"
         },
         {
-            "Icon": "actions/images/actionIcon",
+            "Icon": "actions/images/repeatactionIcon",
             "Name": "Repeat",
             "States": [
                 {
-                    "Image": "actions/images/keyIcon"
+                    "Image": "actions/images/repeatactionIcon"
                 }
             ],
             "Tooltip": "Toggle repeat mode",
