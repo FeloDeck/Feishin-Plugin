@@ -6,7 +6,7 @@
     "Name": "Feishin",
     "Icon": "actions/images/pluginIcon",
     "URL": "https://github.com/Felodeck/Feishin-Plugin",
-    "Version": "0.0.1",
+    "Version": "1.0.0",
     "Software": {
         "MinimumVersion": "5.0"
     },
