@@ -1,73 +1,54 @@
+# Feishin Plugin for Elgato Stream Deck
 
-# Stream Deck Plugin Template
+![Feishin Plugin Logo](src/de.felitendo.feishin.sdPlugin/actions/images/categoryIcon.png)
 
-The `Stream Deck Plugin Template` is a template to let you get started quickly when writing a JavaScript plugin for [Stream Deck](https://docs.elgato.com/sdk/). `Stream Deck Plugin Template` requires Stream Deck 6.0 or later.
-
-## Description
-
-`Stream Deck Plugin Template` is a complete plugin that shows you how to
-
-- load and save settings using Stream Deck's persistent store
-- setup and communicate with the Property Inspector
-- pass messages directly from Property Inspector to the plugin (and vice versa)
-- localize your Property Inspector's UI to another language
+Control your Feishin music playback directly from your Elgato Stream Deck!
 
 ## Features
 
-- code written in Javascript
-- cross-platform (macOS, Windows)
-- localization support
-- styled [Property Inspector](https://developer.elgato.com/documentation/stream-deck/sdk/property-inspector/) included
-- Property Inspector contains all required boilerplate code to let you instantly work on your plugin's code.
+🎵 **Play/Pause**: Start or stop your music with a single tap.
 
-## Quick Start Guide
+⏭️ **Skip**: Jump to the next/previous track effortlessly.
 
-A short guide to help you get started quickly.
+🔀 **Shuffle**: Mix up your playlist for a fresh listening experience.
 
-### Clone the repo
+🔁 **Repeat**: Keep your favorite tunes on loop.
 
-```git clone https://github.com/elgatosf/streamdeck-plugin-template```
+🌐 **Multilingual**: Full support for English and German.
 
-### Replace Name
+## Installation
 
-Rename the folder as well as any references.
+1. Download the latest release from the Elgato Marketplace (STATUS: NOT ACCEPTED YET)
 
-`com.elgato.template.sdPlugin` with `my.domain.plugin-name.sdPlugin`
+## Configuration
 
-> [!IMPORTANT]  
-> When sym-linking the plugin, the folder name must end with `.sdPlugin`.
+To connect the plugin to your Feishin client:
 
-### Get the latest library
+1. Open Feishin
+2. Navigate to Settings
+3. Scroll down to the "Remote Control" section
+4. Toggle on "Enable remote control server"
+5. Set the username to "feishin"
+6. Set the password to "streamdeck"
 
-You can either clone the javascript library or add it as a submodule to your repository.
+For detailed instructions, please refer to [My Feishin Plugin documentation](https://docs.felo.gg/docs/Feishin-Plugin/connect-feishin).
 
-#### Clone
+## Usage
 
-```git clone https://github.com/elgatosf/streamdeck-javascript-sdk src/my.domain.plugin-name/libs```
+Simply drag and drop the desired Feishin actions onto your Stream Deck. Each button will display an icon representing its function.
 
-#### Add Submodule
+## Support
 
-```git submodule add https://github.com/elgatosf/streamdeck-javascript-sdk src/my.domain.plugin-name/libs```
+If you encounter any issues or have suggestions for improvements, please [open an issue](https://github.com/Felodeck/Feishin-Plugin/issues) or contact me [here](mailto:support@felo.gg).
 
-### Start Coding
+## Contributing
 
-You can get started in app.js!
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-```javascript
-const myAction = new Action('com.elgato.template.action');
+## License
 
-/**
- * The first event fired when Stream Deck starts
- */
-$SD.onConnected(({ actionInfo, appInfo, connection, messageType, port, uuid }) => {
-  console.log('Stream Deck connected!');
-});
+This project is licensed under the [GNU GENERAL PUBLIC LICENSE v3](LICENSE).
 
-myAction.onKeyUp(({ action, context, device, event, payload }) => {
-  console.log('Your key code goes here!');
-});
+---
 
-myAction.onDialRotate(({ action, context, device, event, payload }) => {
-  console.log('Your dial code goes here!');
-});
-```
+Developed with ❤️ in Germany.
