@@ -1,6 +1,6 @@
 # Feishin Plugin for Elgato Stream Deck
 
-![Feishin Plugin Logo](src/de.felitendo.feishin.sdPlugin/actions/images/categoryIcon.png)
+![Feishin Plugin Logo](https://github.com/Felodeck/Feishin-Plugin/blob/main/previews/Preview.png)
 
 Control your Feishin music playback directly from your Elgato Stream Deck!
 
