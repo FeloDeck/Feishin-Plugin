@@ -24,7 +24,7 @@ function connectToFeishin() {
 
     feishinWs.onopen = function() {
         console.log('Connected to Feishin');
-        // Authenticate if needed
+        // Authenticate to Feishin Client
         authenticate('feishin', 'streamdeck');
     };
 
