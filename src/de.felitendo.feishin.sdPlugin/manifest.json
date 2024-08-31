@@ -60,11 +60,11 @@
             "PropertyInspectorPath": "propertyinspector/index.html"
         },
         {
-            "Icon": "actions/images/shuffleactionIcon",
+            "Icon": "actions/images/shuffelactionIcon",
             "Name": "Shuffle",
             "States": [
                 {
-                    "Image": "actions/images/shuffleactionIcon"
+                    "Image": "actions/images/shuffelactionIcon"
                 }
             ],
             "Tooltip": "Toggle shuffle mode",

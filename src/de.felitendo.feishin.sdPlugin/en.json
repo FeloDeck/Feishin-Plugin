@@ -1,20 +1,25 @@
 {
-  "Description": "Use this to create your own plugin", 
-  "Name": "Stream Deck Template", 
-  "Category": "Templates", 
-  "com.elgato.template.action": {
-    "Name": "Action", 
-    "Tooltip": "This is the only action in this plugin"
+  "Description": "Control Feishin, a modern self-hosted music player",
+  "Name": "Feishin",
+  "Category": "Feishin",
+  "de.felitendo.feishin.playpause": {
+    "Name": "Play/Pause",
+    "Tooltip": "Play or pause the current track"
   },
-  "Localization": {
-    "More info": "More info",
-    "Message": "Message",
-    "Click Me": "Click Me",
-    "Button": "Button",
-    "More": "More",
-    "My name": "My name",
-    "My title": "My title",
-    "My message": "My message",
-    "My button": "My button"
+  "de.felitendo.feishin.next": {
+    "Name": "Next",
+    "Tooltip": "Play the next track"
+  },
+  "de.felitendo.feishin.previous": {
+    "Name": "Previous",
+    "Tooltip": "Play the previous track"
+  },
+  "de.felitendo.feishin.shuffle": {
+    "Name": "Shuffle",
+    "Tooltip": "Toggle shuffle mode"
+  },
+  "de.felitendo.feishin.repeat": {
+    "Name": "Repeat",
+    "Tooltip": "Toggle repeat mode"
   }
 }
