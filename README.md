@@ -47,7 +47,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the [GNU GENERAL PUBLIC LICENSE v3](LICENSE).
+This project is licensed under the [GPL 3.0 license](LICENSE).
 
 ---
 
