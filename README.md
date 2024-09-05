@@ -50,5 +50,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This project is licensed under the [GPL 3.0 license](LICENSE).
 
 ---
-
-Developed with ❤️ in Germany.
