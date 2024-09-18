@@ -18,7 +18,7 @@ Control your Feishin music playback directly from your Elgato Stream Deck!
 
 ## Installation
 
-1. Download the latest release from the Elgato Marketplace (STATUS: NOT ACCEPTED YET)
+1. Download the latest release from the Elgato Marketplace [here](https://marketplace.elgato.com/product/feishin-d55fd48d-f102-4d21-83ce-bc1ea12beeba)
 
 ## Configuration
 
