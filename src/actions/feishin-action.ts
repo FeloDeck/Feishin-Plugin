@@ -13,6 +13,12 @@ import type { JsonObject } from "@elgato/utils";
 import { feishin, type StateChange } from "../feishin";
 
 /**
+ * Stream Deck's guidelines allow at most 10 updates per second per key / touch strip; turning a dial quickly or holding
+ * a volume key changes the state faster than that.
+ */
+const MIN_RENDER_INTERVAL_MS = 100;
+
+/**
  * Base class for all Feishin actions: keeps every visible instance in sync with Feishin's player state.
  */
 export abstract class FeishinAction<T extends JsonObject = JsonObject> extends SingletonAction<T> {
@@ -31,6 +37,9 @@ export abstract class FeishinAction<T extends JsonObject = JsonObject> extends S
 	 */
 	readonly #images = new Map<string, string | undefined>();
 
+	readonly #lastRender = new Map<string, number>();
+	readonly #pendingRender = new Map<string, NodeJS.Timeout>();
+
 	constructor() {
 		super();
 		feishin.on("state", (changes) => {
@@ -45,17 +54,20 @@ export abstract class FeishinAction<T extends JsonObject = JsonObject> extends S
 		feishin.wake();
 		this.#settings.set(ev.action.id, ev.payload.settings);
 		this.#forgetImages(ev.action.id);
-		return this.render(ev.action, ev.payload.settings);
+		return this.#renderNow(ev.action);
 	}
 
 	override onWillDisappear(ev: WillDisappearEvent<T>): Promise<void> | void {
 		this.#settings.delete(ev.action.id);
 		this.#forgetImages(ev.action.id);
+		clearTimeout(this.#pendingRender.get(ev.action.id));
+		this.#pendingRender.delete(ev.action.id);
+		this.#lastRender.delete(ev.action.id);
 	}
 
 	override onDidReceiveSettings(ev: DidReceiveSettingsEvent<T>): Promise<void> | void {
 		this.#settings.set(ev.action.id, ev.payload.settings);
-		return this.render(ev.action, ev.payload.settings);
+		return this.#renderNow(ev.action);
 	}
 
 	/**
@@ -94,12 +106,41 @@ export abstract class FeishinAction<T extends JsonObject = JsonObject> extends S
 		this.#images.delete(`${id}/1`);
 	}
 
-	async #renderAll(): Promise<void> {
+	#renderAll(): void {
 		for (const action of this.actions) {
-			const settings = this.#settings.get(action.id);
-			if (settings) {
-				await this.render(action, settings);
-			}
+			this.#requestRender(action);
+		}
+	}
+
+	/**
+	 * Renders now, or once {@link MIN_RENDER_INTERVAL_MS} has passed since the last render; the delayed render uses the
+	 * state at that time, so the last change is never lost.
+	 */
+	#requestRender(action: DialAction<T> | KeyAction<T>): void {
+		if (this.#pendingRender.has(action.id)) {
+			return;
+		}
+
+		const wait = (this.#lastRender.get(action.id) ?? 0) + MIN_RENDER_INTERVAL_MS - Date.now();
+		if (wait <= 0) {
+			void this.#renderNow(action);
+			return;
+		}
+
+		this.#pendingRender.set(
+			action.id,
+			setTimeout(() => {
+				this.#pendingRender.delete(action.id);
+				void this.#renderNow(action);
+			}, wait),
+		);
+	}
+
+	async #renderNow(action: DialAction<T> | KeyAction<T>): Promise<void> {
+		const settings = this.#settings.get(action.id);
+		if (settings) {
+			this.#lastRender.set(action.id, Date.now());
+			await this.render(action, settings);
 		}
 	}
 }
