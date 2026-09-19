@@ -1,0 +1,75 @@
+{
+	"Name": "Feishin",
+	"Description": "Steuere Feishin, einen modernen selbst gehosteten Musikplayer",
+	"Category": "Feishin",
+	"de.felitendo.feishin.playpause": {
+		"Name": "Abspielen/Pause",
+		"Tooltip": "Aktuellen Titel abspielen oder pausieren",
+		"States": [{ "Name": "Pausiert" }, { "Name": "Spielt" }]
+	},
+	"de.felitendo.feishin.next": {
+		"Name": "Nächster",
+		"Tooltip": "Nächsten Titel abspielen"
+	},
+	"de.felitendo.feishin.previous": {
+		"Name": "Vorheriger",
+		"Tooltip": "Vorherigen Titel abspielen"
+	},
+	"de.felitendo.feishin.shuffle": {
+		"Name": "Zufallswiedergabe",
+		"Tooltip": "Zufallswiedergabe ein-/ausschalten",
+		"States": [{ "Name": "Aus" }, { "Name": "An" }]
+	},
+	"de.felitendo.feishin.repeat": {
+		"Name": "Wiederholen",
+		"Tooltip": "Zwischen „Nicht wiederholen“, „Alle wiederholen“ und „Titel wiederholen“ wechseln"
+	},
+	"de.felitendo.feishin.volumeup": {
+		"Name": "Lauter",
+		"Tooltip": "Lautstärke erhöhen (gedrückt halten für mehr)"
+	},
+	"de.felitendo.feishin.volumedown": {
+		"Name": "Leiser",
+		"Tooltip": "Lautstärke verringern (gedrückt halten für mehr)"
+	},
+	"de.felitendo.feishin.mute": {
+		"Name": "Stumm",
+		"Tooltip": "Feishin stumm schalten oder Ton wieder einschalten",
+		"States": [{ "Name": "Ton an" }, { "Name": "Stumm" }]
+	},
+	"de.felitendo.feishin.forward": {
+		"Name": "Vorspulen",
+		"Tooltip": "Im aktuellen Titel vorspulen (gedrückt halten für mehr)"
+	},
+	"de.felitendo.feishin.rewind": {
+		"Name": "Zurückspulen",
+		"Tooltip": "Im aktuellen Titel zurückspulen (gedrückt halten für mehr)"
+	},
+	"de.felitendo.feishin.volumedial": {
+		"Name": "Lautstärkeregler (Stream Deck +)",
+		"Tooltip": "Drehen ändert die Lautstärke, Drücken schaltet stumm",
+		"Encoder": {
+			"TriggerDescription": {
+				"Rotate": "Lautstärke anpassen",
+				"Push": "Stumm an/aus",
+				"Touch": "Stumm an/aus"
+			}
+		}
+	},
+	"de.felitendo.feishin.seekdial": {
+		"Name": "Spulregler (Stream Deck +)",
+		"Tooltip": "Zeigt den aktuellen Titel; Drehen spult, Drücken spielt ab oder pausiert",
+		"Encoder": {
+			"TriggerDescription": {
+				"Rotate": "Spulen",
+				"Push": "Abspielen/Pause",
+				"Touch": "Abspielen/Pause"
+			}
+		}
+	},
+	"Localization": {
+		"offline": "Nicht verbunden",
+		"muted": "Stumm",
+		"nothing-playing": "Keine Wiedergabe"
+	}
+}

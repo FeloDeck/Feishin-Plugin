@@ -1,0 +1,31 @@
+{
+    "name": "feishin-stream-deck-plugin",
+    "private": true,
+    "description": "Control Feishin, a modern self-hosted music player, from your Elgato Stream Deck",
+    "license": "GPL-3.0-only",
+    "scripts": {
+        "build": "rollup -c",
+        "watch": "rollup -c -w --watch.onEnd=\"streamdeck restart de.felitendo.feishin\"",
+        "typecheck": "tsc --noEmit",
+        "validate": "streamdeck validate de.felitendo.feishin.sdPlugin",
+        "pack": "npm run build && streamdeck pack de.felitendo.feishin.sdPlugin --force --output dist"
+    },
+    "type": "module",
+    "devDependencies": {
+        "@elgato/cli": "^1.9.0",
+        "@rollup/plugin-commonjs": "^29.0.3",
+        "@rollup/plugin-node-resolve": "^16.0.3",
+        "@rollup/plugin-terser": "^1.0.0",
+        "@rollup/plugin-typescript": "^12.3.0",
+        "@tsconfig/node24": "^24.0.5",
+        "@types/node": "~24.1.0",
+        "@types/ws": "^8.18.1",
+        "rollup": "^4.63.4",
+        "tslib": "^2.8.1",
+        "typescript": "^5.9.3"
+    },
+    "dependencies": {
+        "@elgato/streamdeck": "^2.1.2",
+        "ws": "^8.21.3"
+    }
+}

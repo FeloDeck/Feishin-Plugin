@@ -1,0 +1,75 @@
+{
+	"Name": "Feishin",
+	"Description": "Control Feishin, a modern self-hosted music player",
+	"Category": "Feishin",
+	"de.felitendo.feishin.playpause": {
+		"Name": "Play/Pause",
+		"Tooltip": "Play or pause the current track",
+		"States": [{ "Name": "Paused" }, { "Name": "Playing" }]
+	},
+	"de.felitendo.feishin.next": {
+		"Name": "Next",
+		"Tooltip": "Play the next track"
+	},
+	"de.felitendo.feishin.previous": {
+		"Name": "Previous",
+		"Tooltip": "Play the previous track"
+	},
+	"de.felitendo.feishin.shuffle": {
+		"Name": "Shuffle",
+		"Tooltip": "Toggle shuffle mode",
+		"States": [{ "Name": "Off" }, { "Name": "On" }]
+	},
+	"de.felitendo.feishin.repeat": {
+		"Name": "Repeat",
+		"Tooltip": "Switch between repeat off, repeat all and repeat one"
+	},
+	"de.felitendo.feishin.volumeup": {
+		"Name": "Volume Up",
+		"Tooltip": "Turn the volume up (hold to keep going)"
+	},
+	"de.felitendo.feishin.volumedown": {
+		"Name": "Volume Down",
+		"Tooltip": "Turn the volume down (hold to keep going)"
+	},
+	"de.felitendo.feishin.mute": {
+		"Name": "Mute",
+		"Tooltip": "Mute or unmute Feishin",
+		"States": [{ "Name": "Sound on" }, { "Name": "Muted" }]
+	},
+	"de.felitendo.feishin.forward": {
+		"Name": "Fast Forward",
+		"Tooltip": "Jump forward in the current track (hold to keep going)"
+	},
+	"de.felitendo.feishin.rewind": {
+		"Name": "Rewind",
+		"Tooltip": "Jump back in the current track (hold to keep going)"
+	},
+	"de.felitendo.feishin.volumedial": {
+		"Name": "Volume Dial (Stream Deck +)",
+		"Tooltip": "Rotate to change the volume, press to mute",
+		"Encoder": {
+			"TriggerDescription": {
+				"Rotate": "Adjust volume",
+				"Push": "Mute / unmute",
+				"Touch": "Mute / unmute"
+			}
+		}
+	},
+	"de.felitendo.feishin.seekdial": {
+		"Name": "Seek Dial (Stream Deck +)",
+		"Tooltip": "Shows the current track; rotate to seek, press to play or pause",
+		"Encoder": {
+			"TriggerDescription": {
+				"Rotate": "Seek",
+				"Push": "Play / pause",
+				"Touch": "Play / pause"
+			}
+		}
+	},
+	"Localization": {
+		"offline": "Not connected",
+		"muted": "Muted",
+		"nothing-playing": "Nothing playing"
+	}
+}

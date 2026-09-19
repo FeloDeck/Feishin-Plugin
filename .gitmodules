@@ -1,3 +1,0 @@
-[submodule "src/de.felitendo.feishin.sdPlugin/libs"]
-	path = src/de.felitendo.feishin.sdPlugin/libs
-	url = https://github.com/elgatosf/streamdeck-javascript-sdk

@@ -1,0 +1,243 @@
+{
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+	"UUID": "de.felitendo.feishin",
+	"Name": "Feishin",
+	"Version": "2.0.0.0",
+	"Author": "Felitendo",
+	"Description": "Control Feishin, a modern self-hosted music player",
+	"URL": "https://github.com/FeloDeck/Feishin-Plugin",
+	"SupportURL": "https://github.com/FeloDeck/Feishin-Plugin/issues",
+	"Icon": "imgs/plugin/marketplace",
+	"Category": "Feishin",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"PropertyInspectorPath": "ui/property-inspector.html",
+	"SDKVersion": 3,
+	"Software": {
+		"MinimumVersion": "7.1"
+	},
+	"OS": [
+		{
+			"Platform": "mac",
+			"MinimumVersion": "12"
+		},
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		}
+	],
+	"Nodejs": {
+		"Version": "24",
+		"Debug": "enabled"
+	},
+	"Actions": [
+		{
+			"UUID": "de.felitendo.feishin.playpause",
+			"Name": "Play/Pause",
+			"Tooltip": "Play or pause the current track",
+			"Icon": "imgs/actions/play-pause/icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"DisableAutomaticStates": true,
+			"States": [
+				{
+					"Name": "Paused",
+					"Image": "imgs/actions/play-pause/play"
+				},
+				{
+					"Name": "Playing",
+					"Image": "imgs/actions/play-pause/pause"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.next",
+			"Name": "Next",
+			"Tooltip": "Play the next track",
+			"Icon": "imgs/actions/next/icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/next/key"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.previous",
+			"Name": "Previous",
+			"Tooltip": "Play the previous track",
+			"Icon": "imgs/actions/previous/icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/previous/key"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.shuffle",
+			"Name": "Shuffle",
+			"Tooltip": "Toggle shuffle mode",
+			"Icon": "imgs/actions/shuffle/icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"DisableAutomaticStates": true,
+			"States": [
+				{
+					"Name": "Off",
+					"Image": "imgs/actions/shuffle/off"
+				},
+				{
+					"Name": "On",
+					"Image": "imgs/actions/shuffle/on"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.repeat",
+			"Name": "Repeat",
+			"Tooltip": "Switch between repeat off, repeat all and repeat one",
+			"Icon": "imgs/actions/repeat/icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/repeat/none"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.volumeup",
+			"Name": "Volume Up",
+			"Tooltip": "Turn the volume up (hold to keep going)",
+			"Icon": "imgs/actions/volume/up-icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/volume/up",
+					"TitleAlignment": "bottom"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.volumedown",
+			"Name": "Volume Down",
+			"Tooltip": "Turn the volume down (hold to keep going)",
+			"Icon": "imgs/actions/volume/down-icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/volume/down",
+					"TitleAlignment": "bottom"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.mute",
+			"Name": "Mute",
+			"Tooltip": "Mute or unmute Feishin",
+			"Icon": "imgs/actions/volume/mute-icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"DisableAutomaticStates": true,
+			"States": [
+				{
+					"Name": "Sound on",
+					"Image": "imgs/actions/volume/unmuted",
+					"TitleAlignment": "bottom"
+				},
+				{
+					"Name": "Muted",
+					"Image": "imgs/actions/volume/muted",
+					"TitleAlignment": "bottom"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.forward",
+			"Name": "Fast Forward",
+			"Tooltip": "Jump forward in the current track (hold to keep going)",
+			"Icon": "imgs/actions/seek/forward-icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/seek/forward"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.rewind",
+			"Name": "Rewind",
+			"Tooltip": "Jump back in the current track (hold to keep going)",
+			"Icon": "imgs/actions/seek/rewind-icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/seek/rewind"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.volumedial",
+			"Name": "Volume Dial (Stream Deck +)",
+			"Tooltip": "Rotate to change the volume, press to mute",
+			"Icon": "imgs/actions/volume/dial-icon",
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "$B1",
+				"Icon": "imgs/actions/volume/dial",
+				"TriggerDescription": {
+					"Rotate": "Adjust volume",
+					"Push": "Mute / unmute",
+					"Touch": "Mute / unmute"
+				}
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/volume/dial-key"
+				}
+			]
+		},
+		{
+			"UUID": "de.felitendo.feishin.seekdial",
+			"Name": "Seek Dial (Stream Deck +)",
+			"Tooltip": "Shows the current track; rotate to seek, press to play or pause",
+			"Icon": "imgs/actions/seek/dial-icon",
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "layouts/seek-dial.json",
+				"Icon": "imgs/actions/seek/dial",
+				"TriggerDescription": {
+					"Rotate": "Seek",
+					"Push": "Play / pause",
+					"Touch": "Play / pause"
+				}
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/seek/dial-key"
+				}
+			]
+		}
+	]
+}
