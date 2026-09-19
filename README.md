@@ -1,10 +1,8 @@
 # Feishin Plugin for Elgato Stream Deck
 
-![Feishin Plugin Logo](https://github.com/Felodeck/Feishin-Plugin/blob/main/previews/Preview.png)
+![Feishin actions on a Stream Deck, with the connection status shown in the action settings](previews/opendeck.png)
 
 Control your Feishin music playback directly from your Elgato Stream Deck!
-
-![Feishin actions on a Stream Deck, with the connection status shown in the action settings](previews/opendeck.png)
 
 <sub>Shown in [OpenDeck](https://github.com/nekename/OpenDeck) on Linux.</sub>
 
@@ -32,7 +30,7 @@ Control your Feishin music playback directly from your Elgato Stream Deck!
 
 1. Download the latest release from the Elgato Marketplace [here](https://marketplace.elgato.com/product/feishin-d55fd48d-f102-4d21-83ce-bc1ea12beeba)
 
-Requires Stream Deck 7.1 or later on Windows 10+ or macOS 12+, and the Feishin desktop app.
+Requires Stream Deck 7.1 or later on Windows 10+ or macOS 12+ (on Linux, [OpenDeck](https://github.com/nekename/OpenDeck) with Node.js 20+ works too), and the Feishin desktop app.
 
 ## Connecting Feishin
 
