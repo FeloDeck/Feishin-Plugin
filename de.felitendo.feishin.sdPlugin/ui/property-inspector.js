@@ -29,9 +29,10 @@
 			"section.controls": "Controls",
 			"section.look": "On the key",
 			"settings.volumeStep": "Step",
-			"settings.display": "Display",
-			"tiles.icon": "Icon",
-			"tiles.volume": "Volume",
+			"settings.volume": "Volume",
+			"tiles.off": "Off",
+			"tiles.below": "Below",
+			"tiles.above": "Above",
 			"settings.seekStep": "Jump by",
 			"settings.dialStep": "Step per tick",
 			"settings.dialSeek": "Seek per tick",
@@ -70,9 +71,10 @@
 			"section.controls": "Bedienung",
 			"section.look": "Auf der Taste",
 			"settings.volumeStep": "Schrittweite",
-			"settings.display": "Anzeige",
-			"tiles.icon": "Symbol",
-			"tiles.volume": "Lautstärke",
+			"settings.volume": "Lautstärke",
+			"tiles.off": "Aus",
+			"tiles.below": "Unten",
+			"tiles.above": "Oben",
 			"settings.seekStep": "Springen um",
 			"settings.dialStep": "Schritt pro Raste",
 			"settings.dialSeek": "Spulen pro Raste",
@@ -126,9 +128,8 @@
 		"de.felitendo.feishin.volumedown": "down",
 		"de.felitendo.feishin.mute": "unmuted",
 	});
-	const [getShowVolume, setShowVolume] = SDPIComponents.useSettings("showVolume", (/** @type {unknown} */ value) =>
-		renderTiles(value),
-	);
+	const [getShowVolume, setShowVolume] = SDPIComponents.useSettings("showVolume", () => refreshTiles());
+	const [getVolumeAt, setVolumeAt] = SDPIComponents.useSettings("volumeAt", () => refreshTiles());
 
 	localize();
 	renderBox();
@@ -149,7 +150,7 @@
 			/** @type {HTMLElement} */ (section).hidden = !section.querySelector(".action-section:not([hidden])");
 		}
 		renderBox();
-		getShowVolume().then(renderTiles);
+		refreshTiles();
 
 		client.send("sendToPlugin", { event: "getConnection" });
 	});
@@ -202,38 +203,49 @@
 		repaint();
 	}
 
+	async function refreshTiles() {
+		const show = await getShowVolume();
+		const at = await getVolumeAt();
+		renderTiles(show === false ? "off" : at === "above" ? "above" : "below");
+	}
+
 	/**
-	 * Show volume on the key or not, as two tiles with a small picture of the key.
-	 * @param {unknown} value
+	 * Where the key shows the volume: not at all, below or above the icon. Tiles with a small picture of the key.
+	 * @param {string} choice "off", "below" or "above"
 	 */
-	function renderTiles(value) {
+	function renderTiles(choice) {
 		const icon = VOLUME_ICONS[action];
 		if (!icon) {
 			return;
 		}
-		const shown = value !== false;
 		volumeTiles.replaceChildren(
-			...[false, true].map((show) => {
+			...["off", "below", "above"].map((option) => {
 				const tile = document.createElement("button");
 				tile.type = "button";
-				tile.className = show === shown ? "tile on" : "tile";
+				tile.className = option === choice ? "tile on" : "tile";
 				tile.setAttribute("role", "radio");
-				tile.setAttribute("aria-checked", String(show === shown));
+				tile.setAttribute("aria-checked", String(option === choice));
 				tile.addEventListener("click", () => {
-					setShowVolume(show);
-					renderTiles(show);
+					setShowVolume(option !== "off");
+					if (option !== "off") {
+						setVolumeAt(option);
+					}
+					renderTiles(option);
 				});
-				// Drawn like the key (svgWithTitle in src/images.ts): the icon 13 px up, the volume right under it.
-				const picture = `<image href="../imgs/actions/volume/${icon}.svg" y="${show ? -13 : 0}" width="144" height="144"/>`;
-				const title = show
-					? `<text x="72" y="113.1" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" fill="#fff" text-anchor="middle">50%</text>`
-					: "";
+				// Drawn like the key (svgWithTitle in src/images.ts): the icon 13 px away from the volume, which is right
+				// under or above it.
+				const y = option === "off" ? 0 : option === "above" ? 13 : -13;
+				const picture = `<image href="../imgs/actions/volume/${icon}.svg" y="${y}" width="144" height="144"/>`;
+				const title =
+					option === "off"
+						? ""
+						: `<text x="72" y="${option === "above" ? 45.9 : 113.1}" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" fill="#fff" text-anchor="middle">50%</text>`;
 				const key = document.createElement("span");
 				key.className = "tile-key";
 				key.innerHTML = `<svg viewBox="0 0 144 144">${picture}${title}</svg>`;
 				const name = document.createElement("span");
 				name.className = "tile-name";
-				name.textContent = t(show ? "tiles.volume" : "tiles.icon");
+				name.textContent = t(`tiles.${option}`);
 				tile.append(key, name);
 				return tile;
 			}),

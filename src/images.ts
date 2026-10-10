@@ -31,12 +31,12 @@ const TITLE_GAP = 11;
 const parts = new Map<string, { viewBox: number[]; body: string }>();
 
 /**
- * An SVG from the plugin folder with a line of text under it, both together in the middle of the key. Keys draw the
- * text themselves: OpenDeck puts its title at the bottom edge, far from the icon.
+ * An SVG from the plugin folder with a line of text under or above it, both together in the middle of the key. Keys
+ * draw the text themselves: OpenDeck puts its title at the bottom edge, far from the icon.
  * @param path Path relative to the .sdPlugin folder. The icon must be in the middle of its square viewBox.
  * @param height How tall the icon is, in units of the viewBox.
  */
-export function svgWithTitle(path: string, title: string, height: number): string {
+export function svgWithTitle(path: string, title: string, height: number, above = false): string {
 	let part = parts.get(path);
 	if (part === undefined) {
 		const svg = readFileSync(path, "utf8");
@@ -47,13 +47,14 @@ export function svgWithTitle(path: string, title: string, height: number): strin
 
 	const [x = 0, y = 0, width = KEY_SIZE] = part.viewBox;
 	const scale = KEY_SIZE / width;
-	// Up by half of what the text needs, so icon and text are centered together.
+	// The icon moves away from the text by half of what the text needs, so both are centered together.
 	const shift = (TITLE_GAP + TITLE_INK) / 2;
-	const baseline = Math.round(((KEY_SIZE + height * scale) / 2 + shift) * 10) / 10;
+	const ink = height * scale;
+	const baseline = above ? (KEY_SIZE - ink) / 2 + shift - TITLE_GAP : (KEY_SIZE + ink) / 2 + shift;
 	const text = title.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 	const svg =
 		`<svg xmlns="http://www.w3.org/2000/svg" width="${KEY_SIZE}" height="${KEY_SIZE}" viewBox="0 0 ${KEY_SIZE} ${KEY_SIZE}">` +
-		`<g transform="translate(${-x * scale} ${-y * scale - shift}) scale(${scale})">${part.body}</g>` +
-		`<text x="${KEY_SIZE / 2}" y="${baseline}" font-family="${TITLE_FONT}" font-size="${TITLE_SIZE}" fill="#FFFFFF" text-anchor="middle">${text}</text></svg>`;
+		`<g transform="translate(${-x * scale} ${-y * scale + (above ? shift : -shift)}) scale(${scale})">${part.body}</g>` +
+		`<text x="${KEY_SIZE / 2}" y="${Math.round(baseline * 10) / 10}" font-family="${TITLE_FONT}" font-size="${TITLE_SIZE}" fill="#FFFFFF" text-anchor="middle">${text}</text></svg>`;
 	return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }

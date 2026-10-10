@@ -14,7 +14,7 @@ Control your Feishin music playback directly from your Elgato Stream Deck!
 
 ⏩ **Fast Forward / Rewind**: Jump through the current track (5–60 seconds per press, hold to keep going).
 
-🔊 **Volume**: Volume up/down (hold to keep going) and mute, with the current volume shown on the key.
+🔊 **Volume**: Volume up/down (hold to keep going) and mute, with the current volume under or above the icon.
 
 🎛️ **Stream Deck +**: A volume dial and a seek dial that shows the current track and its progress on the touch strip.
 

@@ -17,15 +17,17 @@ const DEFAULT_STEP = 5;
 type VolumeKeySettings = {
 	/** Percentage points per press. */
 	step?: string;
-	/** Show the current volume under the icon (default: on). */
+	/** Show the current volume on the key (default: on). */
 	showVolume?: boolean;
+	/** Where the volume goes (default: below the icon). */
+	volumeAt?: "below" | "above";
 };
 
 /** How tall the speaker of the volume icons is, in units of their viewBox (y 4.2 to 19.8 with its outline). */
 const SPEAKER_HEIGHT = 15.6;
 
 /**
- * Shows the volume under the icon (unless disabled), both together in the middle of the key. The key draws it into its
+ * Shows the volume under or above the icon (unless disabled), both together in the middle of the key. The key draws it into its
  * image and clears its title meanwhile. Otherwise the icon from the manifest shows.
  * @param icons Icon per state.
  * @param setStateImage {@link FeishinAction.setStateImage} of the action.
@@ -39,8 +41,10 @@ async function renderVolume(
 	const { volume } = feishin.state;
 	const show = settings.showVolume !== false && feishin.isConnected && volume !== null;
 	await action.setTitle(show ? "" : undefined);
+	const above = settings.volumeAt === "above";
 	for (const [state, icon] of icons.entries()) {
-		await setStateImage(state as 0 | 1, show ? svgWithTitle(icon, `${Math.round(volume)}%`, SPEAKER_HEIGHT) : undefined);
+		const image = show ? svgWithTitle(icon, `${Math.round(volume)}%`, SPEAKER_HEIGHT, above) : undefined;
+		await setStateImage(state as 0 | 1, image);
 	}
 }
 
