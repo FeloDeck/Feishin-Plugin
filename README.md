@@ -29,12 +29,13 @@
 
 You need the Feishin desktop app and Stream Deck 7.1 or newer on Windows 10+ or macOS 12+. On Linux, use OpenDeck with Node.js 20 or newer.
 
-Get it from the [Elgato Marketplace](https://marketplace.elgato.com/product/feishin-d55fd48d-f102-4d21-83ce-bc1ea12beeba).
+- **Stream Deck app:** get it from the [Elgato Marketplace](https://marketplace.elgato.com/product/feishin-d55fd48d-f102-4d21-83ce-bc1ea12beeba).
+- **OpenDeck:** click **Plugins** and install **Feishin** from the **Plugin store**.
 
 <details>
-<summary>OpenDeck, or a plugin file</summary>
+<summary>A plugin file</summary>
 
-Download the `.streamDeckPlugin` file from the [latest release](https://github.com/FeloDeck/Feishin-Plugin/releases/latest). In OpenDeck, install it on the **Plugins** page. In the Stream Deck app, double-click it.
+Download the `.streamDeckPlugin` file from the [latest release](https://github.com/FeloDeck/Feishin-Plugin/releases/latest). In the Stream Deck app, double-click it. In OpenDeck, install it on the **Plugins** page.
 
 </details>
 
