@@ -232,14 +232,14 @@
 					}
 					renderTiles(option);
 				});
-				// Drawn like the key (svgWithTitle in src/images.ts): the icon 13 px away from the volume, which is right
-				// under or above it.
-				const y = option === "off" ? 0 : option === "above" ? 13 : -13;
+				// Drawn like the key (svgWithTitle in src/images.ts): the icon 16 px away from the volume, which is under
+				// or above it.
+				const y = option === "off" ? 0 : option === "above" ? 16 : -16;
 				const picture = `<image href="../imgs/actions/volume/${icon}.svg" y="${y}" width="144" height="144"/>`;
 				const title =
 					option === "off"
 						? ""
-						: `<text x="72" y="${option === "above" ? 45.9 : 113.1}" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" fill="#fff" text-anchor="middle">50%</text>`;
+						: `<text x="72" y="${option === "above" ? 43.9 : 116.1}" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" font-weight="700" fill="#fff" text-anchor="middle">50%</text>`;
 				const key = document.createElement("span");
 				key.className = "tile-key";
 				key.innerHTML = `<svg viewBox="0 0 144 144">${picture}${title}</svg>`;
