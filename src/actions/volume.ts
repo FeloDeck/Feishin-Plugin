@@ -9,7 +9,7 @@ import streamDeck, {
 } from "@elgato/streamdeck";
 
 import { feishin, type StateChange } from "../feishin";
-import { svgImage } from "../images";
+import { svgWithTitle } from "../images";
 import { FeishinAction, numberSetting, RepeatingKeyAction } from "./feishin-action";
 
 const DEFAULT_STEP = 5;
@@ -17,27 +17,30 @@ const DEFAULT_STEP = 5;
 type VolumeKeySettings = {
 	/** Percentage points per press. */
 	step?: string;
-	/** Show the current volume as the key's title (default: on). */
+	/** Show the current volume under the icon (default: on). */
 	showVolume?: boolean;
 };
 
+/** How tall the speaker of the volume icons is, in units of their viewBox (y 4.2 to 19.8 with its outline). */
+const SPEAKER_HEIGHT = 15.6;
+
 /**
- * Shows the volume as the key title (unless disabled, or the user has set their own title). The icon moves up to make
- * room for it, and stays centered otherwise.
- * @param raised Icon to show above the volume, per state.
+ * Shows the volume under the icon (unless disabled), both together in the middle of the key. The key draws it into its
+ * image and clears its title meanwhile. Otherwise the icon from the manifest shows.
+ * @param icons Icon per state.
  * @param setStateImage {@link FeishinAction.setStateImage} of the action.
  */
 async function renderVolume(
 	action: KeyAction,
 	settings: VolumeKeySettings,
-	raised: string[],
+	icons: string[],
 	setStateImage: (state: 0 | 1, image: string | undefined) => Promise<void>,
 ): Promise<void> {
 	const { volume } = feishin.state;
 	const show = settings.showVolume !== false && feishin.isConnected && volume !== null;
-	await action.setTitle(show ? `${Math.round(volume)}%` : undefined);
-	for (const [state, image] of raised.entries()) {
-		await setStateImage(state as 0 | 1, show ? svgImage(image) : undefined);
+	await action.setTitle(show ? "" : undefined);
+	for (const [state, icon] of icons.entries()) {
+		await setStateImage(state as 0 | 1, show ? svgWithTitle(icon, `${Math.round(volume)}%`, SPEAKER_HEIGHT) : undefined);
 	}
 }
 
@@ -56,7 +59,7 @@ export class VolumeUp extends RepeatingKeyAction<VolumeKeySettings> {
 
 	protected override async render(action: DialAction | KeyAction, settings: VolumeKeySettings): Promise<void> {
 		if (action.isKey()) {
-			await renderVolume(action, settings, ["imgs/actions/volume/up-raised.svg"], (state, image) =>
+			await renderVolume(action, settings, ["imgs/actions/volume/up.svg"], (state, image) =>
 				this.setStateImage(action, state, image),
 			);
 		}
@@ -77,7 +80,7 @@ export class VolumeDown extends RepeatingKeyAction<VolumeKeySettings> {
 
 	protected override async render(action: DialAction | KeyAction, settings: VolumeKeySettings): Promise<void> {
 		if (action.isKey()) {
-			await renderVolume(action, settings, ["imgs/actions/volume/down-raised.svg"], (state, image) =>
+			await renderVolume(action, settings, ["imgs/actions/volume/down.svg"], (state, image) =>
 				this.setStateImage(action, state, image),
 			);
 		}
@@ -98,8 +101,8 @@ export class Mute extends FeishinAction<VolumeKeySettings> {
 	protected override async render(action: DialAction | KeyAction, settings: VolumeKeySettings): Promise<void> {
 		if (action.isKey()) {
 			await action.setState(feishin.isConnected && feishin.state.volume === 0 ? 1 : 0);
-			const raised = ["imgs/actions/volume/unmuted-raised.svg", "imgs/actions/volume/muted-raised.svg"];
-			await renderVolume(action, settings, raised, (state, image) => this.setStateImage(action, state, image));
+			const icons = ["imgs/actions/volume/unmuted.svg", "imgs/actions/volume/muted.svg"];
+			await renderVolume(action, settings, icons, (state, image) => this.setStateImage(action, state, image));
 		}
 	}
 }

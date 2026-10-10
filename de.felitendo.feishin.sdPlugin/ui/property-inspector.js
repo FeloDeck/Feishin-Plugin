@@ -223,12 +223,14 @@
 					setShowVolume(show);
 					renderTiles(show);
 				});
-				// The raised picture leaves room for the volume, which OpenDeck draws as the title.
-				const picture = `../imgs/actions/volume/${icon}${show ? "-raised" : ""}.svg`;
-				const title = show ? '<text x="72" y="134" font-size="27" fill="#fff" text-anchor="middle">50%</text>' : "";
+				// Drawn like the key (svgWithTitle in src/images.ts): the icon 13 px up, the volume right under it.
+				const picture = `<image href="../imgs/actions/volume/${icon}.svg" y="${show ? -13 : 0}" width="144" height="144"/>`;
+				const title = show
+					? `<text x="72" y="113.1" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" fill="#fff" text-anchor="middle">50%</text>`
+					: "";
 				const key = document.createElement("span");
 				key.className = "tile-key";
-				key.innerHTML = `<svg viewBox="0 0 144 144"><image href="${picture}" width="144" height="144"/>${title}</svg>`;
+				key.innerHTML = `<svg viewBox="0 0 144 144">${picture}${title}</svg>`;
 				const name = document.createElement("span");
 				name.className = "tile-name";
 				name.textContent = t(show ? "tiles.volume" : "tiles.icon");

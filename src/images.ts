@@ -17,3 +17,43 @@ export function svgImage(path: string): string {
 
 	return image;
 }
+
+/** Keys are drawn on 144 x 144. */
+const KEY_SIZE = 144;
+/** The font of the titles OpenDeck draws (font size 11 is about 22 px on a key), like obs-tools. */
+const TITLE_FONT = "'Liberation Sans',Arial,sans-serif";
+const TITLE_SIZE = 22;
+/** How tall digits are in that size, for placing the line. */
+const TITLE_INK = 15;
+/** Space between icon and text. */
+const TITLE_GAP = 11;
+
+const parts = new Map<string, { viewBox: number[]; body: string }>();
+
+/**
+ * An SVG from the plugin folder with a line of text under it, both together in the middle of the key. Keys draw the
+ * text themselves: OpenDeck puts its title at the bottom edge, far from the icon.
+ * @param path Path relative to the .sdPlugin folder. The icon must be in the middle of its square viewBox.
+ * @param height How tall the icon is, in units of the viewBox.
+ */
+export function svgWithTitle(path: string, title: string, height: number): string {
+	let part = parts.get(path);
+	if (part === undefined) {
+		const svg = readFileSync(path, "utf8");
+		const viewBox = (/viewBox="([^"]+)"/.exec(svg)?.[1] ?? `0 0 ${KEY_SIZE} ${KEY_SIZE}`).trim().split(/[\s,]+/);
+		part = { viewBox: viewBox.map(Number), body: /<svg\b[^>]*>([\s\S]*)<\/svg>/.exec(svg)?.[1] ?? "" };
+		parts.set(path, part);
+	}
+
+	const [x = 0, y = 0, width = KEY_SIZE] = part.viewBox;
+	const scale = KEY_SIZE / width;
+	// Up by half of what the text needs, so icon and text are centered together.
+	const shift = (TITLE_GAP + TITLE_INK) / 2;
+	const baseline = Math.round(((KEY_SIZE + height * scale) / 2 + shift) * 10) / 10;
+	const text = title.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+	const svg =
+		`<svg xmlns="http://www.w3.org/2000/svg" width="${KEY_SIZE}" height="${KEY_SIZE}" viewBox="0 0 ${KEY_SIZE} ${KEY_SIZE}">` +
+		`<g transform="translate(${-x * scale} ${-y * scale - shift}) scale(${scale})">${part.body}</g>` +
+		`<text x="${KEY_SIZE / 2}" y="${baseline}" font-family="${TITLE_FONT}" font-size="${TITLE_SIZE}" fill="#FFFFFF" text-anchor="middle">${text}</text></svg>`;
+	return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
