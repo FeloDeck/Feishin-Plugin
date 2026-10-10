@@ -55,7 +55,7 @@ The status at the top of the action settings tells you what's wrong:
 | **Wrong username or password** | Use the same username and password in Feishin and in the plugin's connection settings. |
 | **Can't connect to Feishin** | Something else answered on that port – check host and port. |
 
-A key showing a warning triangle when pressed means the plugin couldn't send the command, usually because Feishin isn't connected.
+While Feishin can't be reached, every key says so: **Feishin offline**, or **Password?** when the username or password is wrong. A key showing a warning triangle when pressed means the plugin couldn't send the command.
 
 Feishin only reports its volume after the volume changes. If the volume actions show a hint that the volume is unknown, change the volume in Feishin once – the plugin remembers it from then on.
 

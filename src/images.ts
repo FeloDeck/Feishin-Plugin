@@ -58,3 +58,29 @@ export function svgWithTitle(path: string, title: string, height: number, above 
 		`<text x="${KEY_SIZE / 2}" y="${Math.round(baseline * 10) / 10}" font-family="${TITLE_FONT}" font-size="${TITLE_SIZE}" font-weight="700" fill="#FFFFFF" text-anchor="middle">${text}</text></svg>`;
 	return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
+
+/** Font, colors and glyphs of the status image in the obs-tools plugin, so both look the same. */
+const STATUS_FONT = "'Inter','Noto Sans','DejaVu Sans','Liberation Sans',sans-serif";
+const GRAY = "#6B6B6B";
+const MUTED = "#9A9AA2";
+const AMBER = "#F5A524";
+const POWER =
+	`<g transform="translate(44 22) scale(2.333)" fill="none" stroke="${GRAY}" stroke-width="2.862" stroke-linecap="round" stroke-linejoin="round">` +
+	`<g transform="translate(12 12) scale(0.839) translate(-12 -13.103)"><path d="M12 3v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></g></g>`;
+const LOCK =
+	`<g transform="translate(44 22) scale(2.333)" fill="none" stroke="${AMBER}" stroke-width="2.248" stroke-linecap="round" stroke-linejoin="round">` +
+	`<g transform="translate(12 12) scale(1.067) translate(-12 -12.396)"><rect x="5" y="11" width="14" height="10" rx="2" fill="${AMBER}" stroke="none"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></g></g>`;
+
+/**
+ * Shown on every key while Feishin can't be reached: a gray power glyph, or an amber lock when Feishin is there but
+ * something is wrong (like the password), with a word or two under it.
+ */
+export function statusImage(label: string, problem: boolean): string {
+	// Smaller font for longer text. Half the font size per letter, so "Feishin offline" still fits at 17 px.
+	const size = Math.max(12, Math.min(20, Math.floor(132 / (Math.max(1, label.length) * 0.5))));
+	const text = label.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+	const svg =
+		`<svg xmlns="http://www.w3.org/2000/svg" width="${KEY_SIZE}" height="${KEY_SIZE}" viewBox="0 0 ${KEY_SIZE} ${KEY_SIZE}">${problem ? LOCK : POWER}` +
+		`<text x="${KEY_SIZE / 2}" y="112" font-family="${STATUS_FONT}" font-size="${size}" font-weight="700" fill="${problem ? AMBER : MUTED}" text-anchor="middle">${text}</text></svg>`;
+	return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}

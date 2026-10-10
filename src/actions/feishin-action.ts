@@ -1,4 +1,4 @@
-import {
+import streamDeck, {
 	type DialAction,
 	type DidReceiveSettingsEvent,
 	type KeyAction,
@@ -10,7 +10,8 @@ import {
 } from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 
-import { feishin, type StateChange } from "../feishin";
+import { type ConnectionStatus, feishin, type StateChange } from "../feishin";
+import { statusImage } from "../images";
 
 /**
  * Stream Deck's guidelines allow at most 10 updates per second per key / touch strip; turning a dial quickly or holding
@@ -36,6 +37,11 @@ export abstract class FeishinAction<T extends JsonObject = JsonObject> extends S
 	 * Images last set per instance and state, see {@link setStateImage}.
 	 */
 	readonly #images = new Map<string, string | undefined>();
+
+	/**
+	 * Status image per key while Feishin can't be reached, see `#showStatus`.
+	 */
+	readonly #status = new Map<string, string>();
 
 	readonly #lastRender = new Map<string, number>();
 	readonly #pendingRender = new Map<string, NodeJS.Timeout>();
@@ -104,6 +110,33 @@ export abstract class FeishinAction<T extends JsonObject = JsonObject> extends S
 	#forgetImages(id: string): void {
 		this.#images.delete(`${id}/0`);
 		this.#images.delete(`${id}/1`);
+		this.#status.delete(id);
+	}
+
+	/**
+	 * Shows why Feishin can't be reached on the key, like the obs-tools plugin does. It stays while the plugin tries
+	 * again and goes away once connected.
+	 * @returns Whether the status shows, so the key draws nothing else.
+	 */
+	async #showStatus(action: KeyAction<T>): Promise<boolean> {
+		const { status } = feishin.connection;
+		const image = statusKey(status);
+		const shown = this.#status.get(action.id);
+		if (image === shown || (image === undefined && status === "connecting")) {
+			return shown !== undefined;
+		}
+
+		if (image === undefined) {
+			this.#status.delete(action.id);
+		} else {
+			this.#status.set(action.id, image);
+		}
+
+		// No state: for both states. Back to the image from the manifest when connected, render() sets its own.
+		this.#images.set(`${action.id}/0`, image);
+		this.#images.set(`${action.id}/1`, image);
+		await action.setImage(image);
+		return image !== undefined;
 	}
 
 	#renderAll(): void {
@@ -140,8 +173,28 @@ export abstract class FeishinAction<T extends JsonObject = JsonObject> extends S
 		const settings = this.#settings.get(action.id);
 		if (settings) {
 			this.#lastRender.set(action.id, Date.now());
+			if (action.isKey() && (await this.#showStatus(action))) {
+				return;
+			}
+
 			await this.render(action, settings);
 		}
+	}
+}
+
+/**
+ * The status image for a key while Feishin can't be reached; nothing while connecting or connected.
+ */
+function statusKey(status: ConnectionStatus): string | undefined {
+	switch (status) {
+		case "unreachable":
+			return statusImage(streamDeck.i18n.translate("status-offline"), false);
+		case "unauthorized":
+			return statusImage(streamDeck.i18n.translate("status-password"), true);
+		case "error":
+			return statusImage(streamDeck.i18n.translate("status-error"), true);
+		default:
+			return undefined;
 	}
 }
 

@@ -70,6 +70,9 @@
 	"Localization": {
 		"offline": "Not connected",
 		"muted": "Muted",
-		"nothing-playing": "Nothing playing"
+		"nothing-playing": "Nothing playing",
+		"status-offline": "Feishin offline",
+		"status-password": "Password?",
+		"status-error": "Feishin error"
 	}
 }
