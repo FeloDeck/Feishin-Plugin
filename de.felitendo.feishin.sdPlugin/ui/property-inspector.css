@@ -64,12 +64,19 @@ body {
 	}
 }
 
+.status-text {
+	flex: 1;
+	min-width: 0;
+}
+
 .status-title {
+	display: block;
 	color: #fff;
 	font-weight: 600;
 }
 
 .status-hint {
+	display: block;
 	margin-top: 2px;
 	color: #b3b3b3;
 	overflow-wrap: anywhere;
@@ -79,44 +86,164 @@ body {
 	display: none;
 }
 
-/* Collapsible panels */
-.panel {
-	margin: 8px 0;
+/* "Change": opens the connection settings below. */
+.status-action {
+	flex: none;
+	padding: 0 2px;
+	border: 0;
+	background: none;
+	color: #2b7fff;
+	font: inherit;
+	cursor: pointer;
+}
+
+.status-action:hover {
+	text-decoration: underline;
+}
+
+/* Connected: one quiet line instead of a card. */
+.status.quiet {
+	align-items: center;
+	gap: 7px;
+	margin: 2px 0 10px;
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+.status.quiet .status-dot {
+	width: 7px;
+	height: 7px;
+	margin: 0;
+}
+
+.status.quiet .status-text {
+	display: flex;
+	gap: 7px;
+	align-items: baseline;
+}
+
+.status.quiet .status-title {
+	color: #969696;
+	font-weight: 400;
+}
+
+.status.quiet .status-hint {
+	margin: 0;
+	color: #6b6b6b;
+}
+
+/* Connection settings, opened from the status line. */
+.connection {
+	margin: 0 0 12px;
+	padding: 10px 0 6px;
 	border-radius: 5px;
 	background: #353535;
 }
 
-.panel > summary {
-	padding: 8px 12px;
+.box-title {
+	margin: 0 12px 6px;
 	color: #e6e6e6;
 	font-weight: 600;
+}
+
+/* Sections of the action settings. The heading folds the settings below it. */
+.heading {
+	margin: 14px 0 4px;
+	padding-bottom: 3px;
+	border-bottom: 1px solid #404040;
+	color: #969696;
+	font-size: 8pt;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.section > summary {
 	cursor: pointer;
 	list-style: none;
 	user-select: none;
 }
 
-.panel > summary::-webkit-details-marker {
+.section > summary::-webkit-details-marker {
 	display: none;
 }
 
-.panel > summary::before {
+.section > summary::before {
 	content: "";
 	display: inline-block;
-	width: 0;
-	height: 0;
-	margin: 0 8px 1px 0;
+	margin: 0 6px 1px 1px;
 	border-style: solid;
-	border-width: 4px 0 4px 6px;
+	border-width: 3.5px 0 3.5px 5px;
 	border-color: transparent transparent transparent currentColor;
 	transition: transform 0.15s;
 }
 
-.panel[open] > summary::before {
+.section[open] > summary::before {
 	transform: rotate(90deg);
 }
 
-.panel[open] {
-	padding-bottom: 6px;
+.section > summary:hover {
+	color: #d8d8d8;
+}
+
+/* Choices with a small picture of the key. The chosen one gets the blue frame OpenDeck puts around the selected key. */
+.tiles {
+	display: inline-grid;
+	grid-auto-columns: 1fr;
+	grid-auto-flow: column;
+	gap: 6px;
+}
+
+.tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 7px;
+	min-width: 88px;
+	padding: 10px 8px 7px;
+	border: 0;
+	border-radius: 8px;
+	background: #3d3d3d;
+	color: #969696;
+	font: inherit;
+	cursor: pointer;
+	transition: background-color 0.12s;
+}
+
+.tile:hover {
+	background: #454545;
+}
+
+.tile:focus-visible {
+	outline: 2px solid rgb(43 127 255 / 0.5);
+	outline-offset: 1px;
+}
+
+.tile-key {
+	display: block;
+	width: 62px;
+	height: 62px;
+	overflow: hidden;
+	border-radius: 12px;
+	background: #000;
+	box-shadow: 0 0 0 2px #4a4a4a;
+	transition: box-shadow 0.12s;
+}
+
+.tile-key svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.tile.on {
+	background: rgb(43 127 255 / 0.14);
+	color: #fff;
+}
+
+.tile.on .tile-key {
+	box-shadow: 0 0 0 2px #2b7fff;
 }
 
 .steps {
@@ -155,19 +282,4 @@ code {
 	border-radius: 5px;
 	background: #3a3a3a;
 	color: #d8d8d8;
-}
-
-.links {
-	margin: 14px 0 0;
-	color: #6b6b6b;
-	text-align: center;
-}
-
-.links a {
-	color: #8ab4ff;
-	text-decoration: none;
-}
-
-.links a:hover {
-	text-decoration: underline;
 }

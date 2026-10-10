@@ -43,7 +43,7 @@ The plugin talks to Feishin's built-in remote control server. You'll find these 
 
 That's it – the status in the action settings turns green as soon as the plugin is connected.
 
-Already using the remote control server with other credentials or a different port (or running Feishin on another computer)? Open the settings of any Feishin action in the Stream Deck app, expand **Connection settings** and enter your host, port, username and password there. They apply to all Feishin actions.
+Already using the remote control server with other credentials or a different port (or running Feishin on another computer)? Open the settings of any Feishin action in the Stream Deck app, click **Change** next to the connection status at the top and enter your host, port, username and password there. They apply to all Feishin actions.
 
 ### Troubleshooting
 

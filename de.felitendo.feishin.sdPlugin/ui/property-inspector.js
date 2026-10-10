@@ -2,8 +2,9 @@
 /* global SDPIComponents */
 
 /**
- * Property inspector shared by all Feishin actions: shows the connection status reported by the plugin, walks the user
- * through enabling Feishin's remote control server, and shows the settings of the selected action.
+ * Property inspector shared by all Feishin actions: shows the connection status reported by the plugin, the connection
+ * settings under it (with the steps to enable Feishin's remote control server while there is no connection), and the
+ * settings of the selected action in sections.
  */
 (() => {
 	const STRINGS = {
@@ -15,16 +16,22 @@
 			"status.connected.hint": "{address}",
 			"status.unreachable": "Feishin can't be reached",
 			"status.unreachable.hint":
-				"Nothing answered at {address}. Make sure Feishin is running and its remote control server is turned on – see the steps below.",
+				"Nothing answered at {address}. Make sure Feishin is running and its remote control server is turned on. See the steps below.",
 			"status.unauthorized": "Wrong username or password",
 			"status.unauthorized.hint":
-				"Feishin rejected the login. Use the same username and password in Feishin (Settings → Window → Remote) and in the connection settings below.",
+				"Feishin rejected the login. Use the same username and password in Feishin (Settings → Window → Remote) and below.",
 			"status.error": "Can't connect to Feishin",
-			"status.error.hint": "{detail} – check the host and port in the connection settings below.",
+			"status.error.hint": "{detail}. Check the host and port below.",
+			"status.change": "Change",
+			"status.close": "Close",
 			"volume.unknown":
 				"Feishin hasn't reported its volume yet – it only does that when the volume changes. Change the volume in Feishin once and these controls will work (only needed once).",
+			"section.controls": "Controls",
+			"section.look": "On the key",
 			"settings.volumeStep": "Step",
-			"settings.showVolume": "Show volume on key",
+			"settings.display": "Display",
+			"tiles.icon": "Icon",
+			"tiles.volume": "Volume",
 			"settings.seekStep": "Jump by",
 			"settings.dialStep": "Step per tick",
 			"settings.dialSeek": "Seek per tick",
@@ -32,18 +39,15 @@
 			"guide.step1": "Open <b>Feishin</b> on this computer and go to <b>Settings → Window → Remote</b>.",
 			"guide.step2": "Turn on <b>Enable remote control server</b>.",
 			"guide.step3":
-				"Set the username to <code>feishin</code> and the password to <code>streamdeck</code>. Already using other credentials? Enter them under <i>Connection settings</i> below instead.",
+				"Set the username to <code>feishin</code> and the password to <code>streamdeck</code>. Already using other credentials? Enter them below instead.",
 			"guide.step4": "Keep the port at <code>4333</code>, or enter your port below.",
 			"guide.done": "The status at the top turns green as soon as the connection works.",
-			"connection.title": "Connection settings",
 			"connection.shared": "These settings apply to all Feishin actions. Leave a field empty to use the default.",
 			"connection.host": "Host",
 			"connection.port": "Port",
 			"connection.username": "Username",
 			"connection.password": "Password",
 			"connection.reconnect": "Reconnect",
-			"links.guide": "Detailed guide",
-			"links.issue": "Report a problem",
 		},
 		de: {
 			"checking": "Verbindung zu Feishin wird geprüft…",
@@ -53,16 +57,22 @@
 			"status.connected.hint": "{address}",
 			"status.unreachable": "Feishin ist nicht erreichbar",
 			"status.unreachable.hint":
-				"Unter {address} antwortet nichts. Stelle sicher, dass Feishin läuft und die Fernsteuerung aktiviert ist – siehe die Schritte unten.",
+				"Unter {address} antwortet nichts. Stelle sicher, dass Feishin läuft und die Fernsteuerung aktiviert ist. Siehe die Schritte unten.",
 			"status.unauthorized": "Falscher Benutzername oder falsches Passwort",
 			"status.unauthorized.hint":
-				"Feishin hat die Anmeldung abgelehnt. Verwende in Feishin (Einstellungen → Fenster → Fernsteuerung) und unten in den Verbindungseinstellungen denselben Benutzernamen und dasselbe Passwort.",
+				"Feishin hat die Anmeldung abgelehnt. Verwende in Feishin (Einstellungen → Fenster → Fernsteuerung) und unten denselben Benutzernamen und dasselbe Passwort.",
 			"status.error": "Keine Verbindung zu Feishin möglich",
-			"status.error.hint": "{detail} – prüfe Host und Port unten in den Verbindungseinstellungen.",
+			"status.error.hint": "{detail}. Prüfe Host und Port unten.",
+			"status.change": "Ändern",
+			"status.close": "Schließen",
 			"volume.unknown":
 				"Feishin hat seine Lautstärke noch nicht gemeldet – das passiert erst, wenn sie sich ändert. Ändere die Lautstärke einmal in Feishin, danach funktionieren diese Regler (nur einmal nötig).",
+			"section.controls": "Bedienung",
+			"section.look": "Auf der Taste",
 			"settings.volumeStep": "Schrittweite",
-			"settings.showVolume": "Lautstärke auf der Taste anzeigen",
+			"settings.display": "Anzeige",
+			"tiles.icon": "Symbol",
+			"tiles.volume": "Lautstärke",
 			"settings.seekStep": "Springen um",
 			"settings.dialStep": "Schritt pro Raste",
 			"settings.dialSeek": "Spulen pro Raste",
@@ -70,18 +80,15 @@
 			"guide.step1": "Öffne <b>Feishin</b> auf diesem Computer und gehe zu <b>Einstellungen → Fenster → Fernsteuerung</b>.",
 			"guide.step2": "Schalte <b>Server für Fernsteuerung aktivieren</b> ein.",
 			"guide.step3":
-				"Setze den Benutzernamen auf <code>feishin</code> und das Passwort auf <code>streamdeck</code>. Du nutzt schon andere Zugangsdaten? Dann trage sie stattdessen unten in den <i>Verbindungseinstellungen</i> ein.",
+				"Setze den Benutzernamen auf <code>feishin</code> und das Passwort auf <code>streamdeck</code>. Du nutzt schon andere Zugangsdaten? Dann trage sie stattdessen unten ein.",
 			"guide.step4": "Lass den Port auf <code>4333</code> oder trage deinen Port unten ein.",
 			"guide.done": "Sobald die Verbindung steht, wird der Status oben grün.",
-			"connection.title": "Verbindungseinstellungen",
 			"connection.shared": "Diese Einstellungen gelten für alle Feishin-Aktionen. Leere Felder verwenden den Standardwert.",
 			"connection.host": "Host",
 			"connection.port": "Port",
 			"connection.username": "Benutzer",
 			"connection.password": "Passwort",
 			"connection.reconnect": "Neu verbinden",
-			"links.guide": "Ausführliche Anleitung",
-			"links.issue": "Problem melden",
 		},
 	};
 
@@ -97,23 +104,52 @@
 	const statusEl = /** @type {HTMLElement} */ (document.getElementById("status"));
 	const statusTitle = /** @type {HTMLElement} */ (document.getElementById("status-title"));
 	const statusHint = /** @type {HTMLElement} */ (document.getElementById("status-hint"));
-	const guide = /** @type {HTMLDetailsElement} */ (document.getElementById("guide"));
-	const connectionPanel = /** @type {HTMLDetailsElement} */ (document.getElementById("connection"));
+	const statusAction = /** @type {HTMLButtonElement} */ (document.getElementById("status-action"));
+	const connectionBox = /** @type {HTMLElement} */ (document.getElementById("connection"));
+	const guide = /** @type {HTMLElement} */ (document.getElementById("guide"));
 	const volumeUnknown = /** @type {HTMLElement} */ (document.getElementById("volume-unknown"));
+	const volumeTiles = /** @type {HTMLElement} */ (document.getElementById("volume-tiles"));
+
+	/**
+	 * The connection box: open while there is a problem (autoOpen), unless the user opened or closed it (setupOpen).
+	 * @type {boolean | null}
+	 */
+	let setupOpen = null;
+	let autoOpen = false;
+
+	/** The selected action. */
+	let action = "";
+
+	// The key pictures the volume tiles show, per action.
+	const VOLUME_ICONS = /** @type {Record<string, string>} */ ({
+		"de.felitendo.feishin.volumeup": "up",
+		"de.felitendo.feishin.volumedown": "down",
+		"de.felitendo.feishin.mute": "unmuted",
+	});
+	const [getShowVolume, setShowVolume] = SDPIComponents.useSettings("showVolume", (/** @type {unknown} */ value) =>
+		renderTiles(value),
+	);
 
 	localize();
+	renderBox();
 
 	client.getConnectionInfo().then(({ info, actionInfo }) => {
 		strings = pickStrings(info?.application?.language);
+		action = actionInfo.action;
 		localize();
 		if (connection) {
 			renderConnection(connection);
 		}
 
-		for (const section of document.querySelectorAll(".action-section")) {
-			const actions = (section.getAttribute("data-actions") ?? "").split(/\s+/);
-			/** @type {HTMLElement} */ (section).hidden = !actions.includes(actionInfo.action);
+		for (const part of document.querySelectorAll(".action-section")) {
+			const actions = (part.getAttribute("data-actions") ?? "").split(/\s+/);
+			/** @type {HTMLElement} */ (part).hidden = !actions.includes(action);
 		}
+		for (const section of document.querySelectorAll(".section")) {
+			/** @type {HTMLElement} */ (section).hidden = !section.querySelector(".action-section:not([hidden])");
+		}
+		renderBox();
+		getShowVolume().then(renderTiles);
 
 		client.send("sendToPlugin", { event: "getConnection" });
 	});
@@ -128,37 +164,84 @@
 		client.send("sendToPlugin", { event: "reconnect" });
 	});
 
-	for (const link of document.querySelectorAll("a[data-url]")) {
-		link.addEventListener("click", (ev) => {
-			ev.preventDefault();
-			client.send("openUrl", { url: link.getAttribute("data-url") });
-		});
-	}
+	statusAction.addEventListener("click", () => {
+		setupOpen = !(setupOpen ?? autoOpen);
+		renderBox();
+	});
 
 	/**
 	 * @param {Connection} next
 	 */
 	function renderConnection(next) {
-		const changed = next.status !== connection?.status;
 		connection = next;
 
 		statusEl.dataset.status = next.status;
+		statusEl.classList.toggle("quiet", next.status === "connected");
 		statusTitle.textContent = t(`status.${next.status}`);
 		statusHint.textContent = t(`status.${next.status}.hint`)
 			.replace("{address}", next.address)
 			.replace("{detail}", next.detail || next.address);
 		volumeUnknown.hidden = next.status !== "connected" || next.volumeKnown !== false;
 
-		// Point the user at whatever helps with the current problem; don't fight them when they open / close panels.
-		if (changed) {
-			if (next.status === "connected") {
-				guide.open = false;
-			} else if (next.status === "unreachable") {
-				guide.open = true;
-			} else if (next.status === "unauthorized" || next.status === "error") {
-				connectionPanel.open = true;
-			}
+		// A new problem opens the connection box, a working connection closes it. "Connecting" while Feishin is away
+		// changes nothing, or the box would flicker with each try.
+		const problem = ["unreachable", "unauthorized", "error"].includes(next.status);
+		if ((next.status === "connected" || problem) && problem !== autoOpen) {
+			autoOpen = problem;
+			setupOpen = null;
 		}
+		guide.hidden = next.status === "connected";
+		renderBox();
+	}
+
+	function renderBox() {
+		const open = setupOpen ?? autoOpen;
+		connectionBox.hidden = !open;
+		statusAction.textContent = t(open ? "status.close" : "status.change");
+		statusAction.setAttribute("aria-expanded", String(open));
+		repaint();
+	}
+
+	/**
+	 * Show volume on the key or not, as two tiles with a small picture of the key.
+	 * @param {unknown} value
+	 */
+	function renderTiles(value) {
+		const icon = VOLUME_ICONS[action];
+		if (!icon) {
+			return;
+		}
+		const shown = value !== false;
+		volumeTiles.replaceChildren(
+			...[false, true].map((show) => {
+				const tile = document.createElement("button");
+				tile.type = "button";
+				tile.className = show === shown ? "tile on" : "tile";
+				tile.setAttribute("role", "radio");
+				tile.setAttribute("aria-checked", String(show === shown));
+				tile.addEventListener("click", () => {
+					setShowVolume(show);
+					renderTiles(show);
+				});
+				// The raised picture leaves room for the volume, which OpenDeck draws as the title.
+				const picture = `../imgs/actions/volume/${icon}${show ? "-raised" : ""}.svg`;
+				const title = show ? '<text x="72" y="134" font-size="27" fill="#fff" text-anchor="middle">50%</text>' : "";
+				const key = document.createElement("span");
+				key.className = "tile-key";
+				key.innerHTML = `<svg viewBox="0 0 144 144"><image href="${picture}" width="144" height="144"/>${title}</svg>`;
+				const name = document.createElement("span");
+				name.className = "tile-name";
+				name.textContent = t(show ? "tiles.volume" : "tiles.icon");
+				tile.append(key, name);
+				return tile;
+			}),
+		);
+	}
+
+	// WebKitGTK in OpenDeck sometimes paints only parts of the page after a big change and keeps old pixels elsewhere. A
+	// tiny change of the opacity makes it paint the whole page again.
+	function repaint() {
+		document.body.style.opacity = document.body.style.opacity === "0.999" ? "" : "0.999";
 	}
 
 	function localize() {

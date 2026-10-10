@@ -11,92 +11,30 @@
 </head>
 
 <body>
-	<!-- Connection status: filled in by property-inspector.js from the plugin's messages. -->
+	<!--
+		Connection status, filled in by property-inspector.js from the plugin's messages. "Change" opens the connection
+		settings right below it. They also open by themselves while Feishin can't be reached.
+	-->
 	<section id="status" class="status" data-status="checking" aria-live="polite">
 		<span class="status-dot" aria-hidden="true"></span>
 		<div class="status-text">
-			<div id="status-title" class="status-title" data-i18n="checking">Checking connection to Feishin…</div>
-			<div id="status-hint" class="status-hint"></div>
+			<span id="status-title" class="status-title" data-i18n="checking">Checking connection to Feishin…</span>
+			<span id="status-hint" class="status-hint"></span>
 		</div>
+		<button id="status-action" class="status-action" type="button" aria-expanded="false">Change</button>
 	</section>
 
-	<!--
-		Action specific settings, shown for the action UUIDs in data-actions. They are part of the page from the start (and
-		only hidden) because sdpi-components reads the saved settings once, when the property inspector connects.
-	-->
-	<div id="action-settings">
-		<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown de.felitendo.feishin.mute de.felitendo.feishin.volumedial">
-			<p id="volume-unknown" class="hint" hidden data-i18n="volume.unknown">Feishin hasn't reported its volume yet – it only does that when the volume changes. Change the volume in Feishin once and these controls will work (only needed once).</p>
+	<section id="connection" class="connection" hidden>
+		<div id="guide">
+			<div class="box-title" data-i18n="guide.title">How to connect Feishin</div>
+			<ol class="steps">
+				<li data-i18n-html="guide.step1">Open <b>Feishin</b> on this computer and go to <b>Settings → Window → Remote</b>.</li>
+				<li data-i18n-html="guide.step2">Turn on <b>Enable remote control server</b>.</li>
+				<li data-i18n-html="guide.step3">Set the username to <code>feishin</code> and the password to <code>streamdeck</code>. Already using other credentials? Enter them below instead.</li>
+				<li data-i18n-html="guide.step4">Keep the port at <code>4333</code>, or enter your port below.</li>
+			</ol>
+			<p class="note" data-i18n="guide.done">The status at the top turns green as soon as the connection works.</p>
 		</div>
-
-		<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown">
-			<sdpi-item label="Step" data-i18n-label="settings.volumeStep">
-				<sdpi-select setting="step" default="5">
-					<option value="1">1 %</option>
-					<option value="2">2 %</option>
-					<option value="5">5 %</option>
-					<option value="10">10 %</option>
-					<option value="20">20 %</option>
-				</sdpi-select>
-			</sdpi-item>
-		</div>
-
-		<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown de.felitendo.feishin.mute">
-			<sdpi-item>
-				<sdpi-checkbox setting="showVolume" default="true" label="Show volume on key" data-i18n-label="settings.showVolume"></sdpi-checkbox>
-			</sdpi-item>
-		</div>
-
-		<div class="action-section" hidden data-actions="de.felitendo.feishin.forward de.felitendo.feishin.rewind">
-			<sdpi-item label="Jump by" data-i18n-label="settings.seekStep">
-				<sdpi-select setting="seconds" default="10">
-					<option value="5">5 s</option>
-					<option value="10">10 s</option>
-					<option value="15">15 s</option>
-					<option value="30">30 s</option>
-					<option value="60">60 s</option>
-				</sdpi-select>
-			</sdpi-item>
-		</div>
-
-		<div class="action-section" hidden data-actions="de.felitendo.feishin.volumedial">
-			<sdpi-item label="Step per tick" data-i18n-label="settings.dialStep">
-				<sdpi-select setting="tickStep" default="2">
-					<option value="1">1 %</option>
-					<option value="2">2 %</option>
-					<option value="5">5 %</option>
-					<option value="10">10 %</option>
-				</sdpi-select>
-			</sdpi-item>
-		</div>
-
-		<div class="action-section" hidden data-actions="de.felitendo.feishin.seekdial">
-			<sdpi-item label="Seek per tick" data-i18n-label="settings.dialSeek">
-				<sdpi-select setting="tickSeconds" default="5">
-					<option value="1">1 s</option>
-					<option value="2">2 s</option>
-					<option value="5">5 s</option>
-					<option value="10">10 s</option>
-					<option value="15">15 s</option>
-					<option value="30">30 s</option>
-				</sdpi-select>
-			</sdpi-item>
-		</div>
-	</div>
-
-	<details id="guide" class="panel">
-		<summary data-i18n="guide.title">How to connect Feishin</summary>
-		<ol class="steps">
-			<li data-i18n-html="guide.step1">Open <b>Feishin</b> on this computer and go to <b>Settings → Window → Remote</b>.</li>
-			<li data-i18n-html="guide.step2">Turn on <b>Enable remote control server</b>.</li>
-			<li data-i18n-html="guide.step3">Set the username to <code>feishin</code> and the password to <code>streamdeck</code>. Already using other credentials? Enter them under <i>Connection settings</i> below instead.</li>
-			<li data-i18n-html="guide.step4">Keep the port at <code>4333</code>, or enter your port below.</li>
-		</ol>
-		<p class="note" data-i18n="guide.done">The status at the top turns green as soon as the connection works.</p>
-	</details>
-
-	<details id="connection" class="panel">
-		<summary data-i18n="connection.title">Connection settings</summary>
 		<p class="note" data-i18n="connection.shared">These settings apply to all Feishin actions. Leave a field empty to use the default.</p>
 		<sdpi-item label="Host" data-i18n-label="connection.host">
 			<sdpi-textfield setting="host" global placeholder="localhost"></sdpi-textfield>
@@ -113,13 +51,82 @@
 		<sdpi-item>
 			<sdpi-button id="reconnect" data-i18n="connection.reconnect">Reconnect</sdpi-button>
 		</sdpi-item>
-	</details>
+	</section>
 
-	<p class="links">
-		<a href="#" data-url="https://github.com/FeloDeck/Feishin-Plugin#connecting-feishin" data-i18n="links.guide">Detailed guide</a>
-		<span aria-hidden="true">·</span>
-		<a href="#" data-url="https://github.com/FeloDeck/Feishin-Plugin/issues" data-i18n="links.issue">Report a problem</a>
-	</p>
+	<!--
+		Action specific settings, shown for the action UUIDs in data-actions. They are part of the page from the start (and
+		only hidden) because sdpi-components reads the saved settings once, when the property inspector connects. A section
+		without a visible part is hidden too.
+	-->
+	<div id="action-settings">
+		<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown de.felitendo.feishin.mute de.felitendo.feishin.volumedial">
+			<p id="volume-unknown" class="hint" hidden data-i18n="volume.unknown">Feishin hasn't reported its volume yet – it only does that when the volume changes. Change the volume in Feishin once and these controls will work (only needed once).</p>
+		</div>
+
+		<!-- What a press or a turn does. -->
+		<details class="section" open>
+			<summary class="heading" data-i18n="section.controls">Controls</summary>
+
+			<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown">
+				<sdpi-item label="Step" data-i18n-label="settings.volumeStep">
+					<sdpi-select setting="step" default="5">
+						<option value="1">1 %</option>
+						<option value="2">2 %</option>
+						<option value="5">5 %</option>
+						<option value="10">10 %</option>
+						<option value="20">20 %</option>
+					</sdpi-select>
+				</sdpi-item>
+			</div>
+
+			<div class="action-section" hidden data-actions="de.felitendo.feishin.forward de.felitendo.feishin.rewind">
+				<sdpi-item label="Jump by" data-i18n-label="settings.seekStep">
+					<sdpi-select setting="seconds" default="10">
+						<option value="5">5 s</option>
+						<option value="10">10 s</option>
+						<option value="15">15 s</option>
+						<option value="30">30 s</option>
+						<option value="60">60 s</option>
+					</sdpi-select>
+				</sdpi-item>
+			</div>
+
+			<div class="action-section" hidden data-actions="de.felitendo.feishin.volumedial">
+				<sdpi-item label="Step per tick" data-i18n-label="settings.dialStep">
+					<sdpi-select setting="tickStep" default="2">
+						<option value="1">1 %</option>
+						<option value="2">2 %</option>
+						<option value="5">5 %</option>
+						<option value="10">10 %</option>
+					</sdpi-select>
+				</sdpi-item>
+			</div>
+
+			<div class="action-section" hidden data-actions="de.felitendo.feishin.seekdial">
+				<sdpi-item label="Seek per tick" data-i18n-label="settings.dialSeek">
+					<sdpi-select setting="tickSeconds" default="5">
+						<option value="1">1 s</option>
+						<option value="2">2 s</option>
+						<option value="5">5 s</option>
+						<option value="10">10 s</option>
+						<option value="15">15 s</option>
+						<option value="30">30 s</option>
+					</sdpi-select>
+				</sdpi-item>
+			</div>
+		</details>
+
+		<!-- How the key looks. The tiles show the key with each choice. -->
+		<details class="section" open>
+			<summary class="heading" data-i18n="section.look">On the key</summary>
+
+			<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown de.felitendo.feishin.mute">
+				<sdpi-item label="Display" data-i18n-label="settings.display">
+					<div id="volume-tiles" class="tiles" role="radiogroup"></div>
+				</sdpi-item>
+			</div>
+		</details>
+	</div>
 
 	<script src="property-inspector.js"></script>
 </body>
