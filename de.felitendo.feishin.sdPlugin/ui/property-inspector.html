@@ -69,49 +69,49 @@
 
 			<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown">
 				<sdpi-item label="Step" data-i18n-label="settings.volumeStep">
-					<sdpi-select setting="step" default="5">
+					<select class="choice" data-setting="step" data-default="5" hidden>
 						<option value="1">1 %</option>
 						<option value="2">2 %</option>
 						<option value="5">5 %</option>
 						<option value="10">10 %</option>
 						<option value="20">20 %</option>
-					</sdpi-select>
+					</select>
 				</sdpi-item>
 			</div>
 
 			<div class="action-section" hidden data-actions="de.felitendo.feishin.forward de.felitendo.feishin.rewind">
 				<sdpi-item label="Jump by" data-i18n-label="settings.seekStep">
-					<sdpi-select setting="seconds" default="10">
+					<select class="choice" data-setting="seconds" data-default="10" hidden>
 						<option value="5">5 s</option>
 						<option value="10">10 s</option>
 						<option value="15">15 s</option>
 						<option value="30">30 s</option>
 						<option value="60">60 s</option>
-					</sdpi-select>
+					</select>
 				</sdpi-item>
 			</div>
 
 			<div class="action-section" hidden data-actions="de.felitendo.feishin.volumedial">
 				<sdpi-item label="Step per tick" data-i18n-label="settings.dialStep">
-					<sdpi-select setting="tickStep" default="2">
+					<select class="choice" data-setting="tickStep" data-default="2" hidden>
 						<option value="1">1 %</option>
 						<option value="2">2 %</option>
 						<option value="5">5 %</option>
 						<option value="10">10 %</option>
-					</sdpi-select>
+					</select>
 				</sdpi-item>
 			</div>
 
 			<div class="action-section" hidden data-actions="de.felitendo.feishin.seekdial">
 				<sdpi-item label="Seek per tick" data-i18n-label="settings.dialSeek">
-					<sdpi-select setting="tickSeconds" default="5">
+					<select class="choice" data-setting="tickSeconds" data-default="5" hidden>
 						<option value="1">1 s</option>
 						<option value="2">2 s</option>
 						<option value="5">5 s</option>
 						<option value="10">10 s</option>
 						<option value="15">15 s</option>
 						<option value="30">30 s</option>
-					</sdpi-select>
+					</select>
 				</sdpi-item>
 			</div>
 		</details>

@@ -131,6 +131,16 @@
 	const [getShowVolume, setShowVolume] = SDPIComponents.useSettings("showVolume", () => refreshTiles());
 	const [getVolumeAt, setVolumeAt] = SDPIComponents.useSettings("volumeAt", () => refreshTiles());
 
+	// Rows like in obs-tools: 30 % for the label, the rest for the field. sdpi-item has a fixed 95 px + 241 px grid.
+	for (const item of document.querySelectorAll("sdpi-item")) {
+		const style = document.createElement("style");
+		// More specific than its own ".grid", which comes later.
+		style.textContent = ".container.grid { grid-template-columns: 30% minmax(0, 1fr); }";
+		item.shadowRoot?.append(style);
+	}
+	for (const source of document.querySelectorAll("select.choice")) {
+		dropdown(/** @type {HTMLSelectElement} */ (source));
+	}
 	localize();
 	renderBox();
 
@@ -250,6 +260,144 @@
 				return tile;
 			}),
 		);
+	}
+
+	/** @type {{ root: HTMLElement; close: () => void } | null} */
+	let openDropdown = null;
+
+	function closeDropdown() {
+		const current = openDropdown;
+		openDropdown = null;
+		current?.close();
+	}
+
+	document.addEventListener("mousedown", (e) => {
+		if (openDropdown && !openDropdown.root.contains(/** @type {Node} */ (e.target))) {
+			closeDropdown();
+		}
+	});
+
+	/**
+	 * A drop-down like in obs-tools, in place of a hidden <select class="choice"> that holds the setting
+	 * (data-setting), its default (data-default) and the options. OpenDeck's WebKitGTK draws native drop-downs, and the
+	 * ones of sdpi-components, in the GTK style.
+	 * @param {HTMLSelectElement} source
+	 */
+	function dropdown(source) {
+		const fallback = source.dataset.default ?? "";
+		const options = [...source.options].map((o) => ({ value: o.value, label: o.textContent ?? "" }));
+		let value = fallback;
+
+		const root = document.createElement("div");
+		root.className = "dropdown";
+		const button = document.createElement("button");
+		button.type = "button";
+		button.className = "dd-button";
+		const label = document.createElement("span");
+		label.className = "dd-label";
+		button.append(label);
+		button.insertAdjacentHTML(
+			"beforeend",
+			'<span class="dd-chevron"><svg width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>',
+		);
+		root.append(button);
+		source.replaceWith(root);
+
+		const [getValue, setValue] = SDPIComponents.useSettings(source.dataset.setting ?? "", (/** @type {unknown} */ v) =>
+			show(v),
+		);
+		getValue().then(show);
+
+		/** @param {unknown} v */
+		function show(v) {
+			value = v === undefined || v === null || v === "" ? fallback : String(v);
+			label.textContent = options.find((o) => o.value === value)?.label ?? value;
+		}
+
+		button.addEventListener("click", () => (openDropdown?.root === root ? closeDropdown() : open()));
+		button.addEventListener("keydown", (e) => {
+			if (["ArrowDown", "ArrowUp", "Enter", " "].includes(e.key) && openDropdown?.root !== root) {
+				e.preventDefault();
+				open();
+			}
+		});
+
+		function open() {
+			closeDropdown();
+			root.classList.add("open");
+			const pop = document.createElement("div");
+			pop.className = "dd-pop";
+			pop.setAttribute("role", "listbox");
+			let active = Math.max(0, options.findIndex((o) => o.value === value));
+			const items = options.map((option, i) => {
+				const item = document.createElement("div");
+				item.className = option.value === value ? "dd-item selected" : "dd-item";
+				item.setAttribute("role", "option");
+				item.innerHTML =
+					option.value === value
+						? '<span class="dd-check"><svg width="13" height="10" viewBox="0 0 13 10"><path d="M1.6 5.3 4.8 8.4 11.4 1.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+						: '<span class="dd-check"></span>';
+				const text = document.createElement("span");
+				text.className = "dd-text";
+				text.textContent = option.label;
+				item.append(text);
+				item.addEventListener("mousedown", (e) => {
+					e.preventDefault();
+					pick(option.value);
+				});
+				item.addEventListener("mouseenter", () => {
+					active = i;
+					mark();
+				});
+				return item;
+			});
+			pop.append(...items);
+			root.append(pop);
+
+			const mark = () => items.forEach((item, i) => item.classList.toggle("active", i === active));
+			/** @param {string} next */
+			const pick = (next) => {
+				closeDropdown();
+				button.focus();
+				if (next !== value) {
+					show(next);
+					setValue(next);
+				}
+			};
+			/** @param {KeyboardEvent} e */
+			const onKey = (e) => {
+				if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+					active = Math.min(items.length - 1, Math.max(0, active + (e.key === "ArrowDown" ? 1 : -1)));
+					mark();
+				} else if (e.key === "Enter" || e.key === " ") {
+					pick(options[active].value);
+				} else if (e.key === "Escape" || e.key === "Tab") {
+					closeDropdown();
+					button.focus();
+				} else {
+					return;
+				}
+				e.preventDefault();
+				e.stopPropagation();
+			};
+
+			// Open upwards when there is more room above.
+			const rect = button.getBoundingClientRect();
+			const below = window.innerHeight - rect.bottom;
+			pop.classList.toggle("up", below < pop.offsetHeight + 8 && rect.top > below);
+			mark();
+			document.addEventListener("keydown", onKey, true);
+			openDropdown = {
+				root,
+				close: () => {
+					document.removeEventListener("keydown", onKey, true);
+					pop.remove();
+					root.classList.remove("open");
+					repaint();
+				},
+			};
+			repaint();
+		}
 	}
 
 	// WebKitGTK in OpenDeck sometimes paints only parts of the page after a big change and keeps old pixels elsewhere. A
