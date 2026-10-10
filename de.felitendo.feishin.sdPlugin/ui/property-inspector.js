@@ -33,6 +33,10 @@
 			"tiles.off": "Off",
 			"tiles.below": "Below",
 			"tiles.above": "Above",
+			"settings.time": "Time",
+			"settings.timeShows": "Shows",
+			"shows.left": "Time left",
+			"shows.played": "Time played",
 			"settings.seekStep": "Jump by",
 			"settings.dialStep": "Step per tick",
 			"settings.dialSeek": "Seek per tick",
@@ -75,6 +79,10 @@
 			"tiles.off": "Aus",
 			"tiles.below": "Unten",
 			"tiles.above": "Oben",
+			"settings.time": "Zeit",
+			"settings.timeShows": "Zeigt",
+			"shows.left": "Restzeit",
+			"shows.played": "Gespielte Zeit",
 			"settings.seekStep": "Springen um",
 			"settings.dialStep": "Schritt pro Raste",
 			"settings.dialSeek": "Spulen pro Raste",
@@ -111,6 +119,9 @@
 	const guide = /** @type {HTMLElement} */ (document.getElementById("guide"));
 	const volumeUnknown = /** @type {HTMLElement} */ (document.getElementById("volume-unknown"));
 	const volumeTiles = /** @type {HTMLElement} */ (document.getElementById("volume-tiles"));
+	const timeTiles = /** @type {HTMLElement} */ (document.getElementById("time-tiles"));
+	const timeShowsRow = /** @type {HTMLElement} */ (document.getElementById("time-shows-row"));
+	const timeShows = /** @type {HTMLElement} */ (document.getElementById("time-shows"));
 
 	/**
 	 * The connection box: open while there is a problem (autoOpen), unless the user opened or closed it (setupOpen).
@@ -130,6 +141,9 @@
 	});
 	const [getShowVolume, setShowVolume] = SDPIComponents.useSettings("showVolume", () => refreshTiles());
 	const [getVolumeAt, setVolumeAt] = SDPIComponents.useSettings("volumeAt", () => refreshTiles());
+	const [getShowTime, setShowTime] = SDPIComponents.useSettings("showTime", () => refreshTiles());
+	const [getTimeAt, setTimeAt] = SDPIComponents.useSettings("timeAt", () => refreshTiles());
+	const [getTimeShows, setTimeShows] = SDPIComponents.useSettings("timeShows", () => refreshTiles());
 
 	// Rows like in obs-tools: 30 % for the label, the rest for the field. sdpi-item has a fixed 95 px + 241 px grid.
 	for (const item of document.querySelectorAll("sdpi-item")) {
@@ -214,45 +228,89 @@
 	}
 
 	async function refreshTiles() {
-		const show = await getShowVolume();
-		const at = await getVolumeAt();
-		renderTiles(show === false ? "off" : at === "above" ? "above" : "below");
+		renderLook({
+			showVolume: await getShowVolume(),
+			volumeAt: await getVolumeAt(),
+			showTime: await getShowTime(),
+			timeAt: await getTimeAt(),
+			timeShows: await getTimeShows(),
+		});
 	}
 
 	/**
-	 * Where the key shows the volume: not at all, below or above the icon. Tiles with a small picture of the key.
-	 * @param {string} choice "off", "below" or "above"
+	 * The rows of "On the key". A click renders them with the new value right away, because sdpi-components saves a
+	 * setting only after a short wait.
+	 * @param {Record<string, unknown>} s The settings the rows need.
 	 */
-	function renderTiles(choice) {
+	function renderLook(s) {
 		const icon = VOLUME_ICONS[action];
-		if (!icon) {
-			return;
+		if (icon) {
+			renderTiles(volumeTiles, s.showVolume === false ? "off" : s.volumeAt === "above" ? "above" : "below", {
+				picture: (option) => keyPicture(`volume/${icon}`, 15.6, option === "off" ? "" : "50%", option),
+				pick: (option) => {
+					setShowVolume(option !== "off");
+					if (option !== "off") {
+						setVolumeAt(option);
+					}
+					renderLook({ ...s, showVolume: option !== "off", volumeAt: option === "off" ? s.volumeAt : option });
+				},
+			});
 		}
-		volumeTiles.replaceChildren(
+
+		if (action === "de.felitendo.feishin.playpause") {
+			const shows = s.timeShows === "played" ? "played" : "left";
+			const time = shows === "played" ? "1:05" : "-2:31";
+			// The key as it looks while playing.
+			renderTiles(timeTiles, s.showTime === false ? "off" : s.timeAt === "above" ? "above" : "below", {
+				picture: (option) => keyPicture("play-pause/pause", 15.5, option === "off" ? "" : time, option),
+				pick: (option) => {
+					setShowTime(option !== "off");
+					if (option !== "off") {
+						setTimeAt(option);
+					}
+					renderLook({ ...s, showTime: option !== "off", timeAt: option === "off" ? s.timeAt : option });
+				},
+			});
+
+			timeShowsRow.hidden = s.showTime === false;
+			timeShows.replaceChildren(
+				...["left", "played"].map((option) => {
+					const button = document.createElement("button");
+					button.type = "button";
+					button.className = option === shows ? "on" : "";
+					button.setAttribute("role", "radio");
+					button.setAttribute("aria-checked", String(option === shows));
+					button.textContent = t(`shows.${option}`);
+					button.addEventListener("click", () => {
+						setTimeShows(option);
+						renderLook({ ...s, timeShows: option });
+					});
+					return button;
+				}),
+			);
+		}
+		repaint();
+	}
+
+	/**
+	 * Where the key shows its text: not at all, below or above the icon. Tiles with a small picture of the key.
+	 * @param {HTMLElement} tiles
+	 * @param {string} choice "off", "below" or "above"
+	 * @param {{ picture: (option: string) => string; pick: (option: string) => void }} how The picture of the key with
+	 * a choice, and what picking it does.
+	 */
+	function renderTiles(tiles, choice, how) {
+		tiles.replaceChildren(
 			...["off", "below", "above"].map((option) => {
 				const tile = document.createElement("button");
 				tile.type = "button";
 				tile.className = option === choice ? "tile on" : "tile";
 				tile.setAttribute("role", "radio");
 				tile.setAttribute("aria-checked", String(option === choice));
-				tile.addEventListener("click", () => {
-					setShowVolume(option !== "off");
-					if (option !== "off") {
-						setVolumeAt(option);
-					}
-					renderTiles(option);
-				});
-				// Drawn like the key (svgWithTitle in src/images.ts): the icon 16 px away from the volume, which is under
-				// or above it.
-				const y = option === "off" ? 0 : option === "above" ? 16 : -16;
-				const picture = `<image href="../imgs/actions/volume/${icon}.svg" y="${y}" width="144" height="144"/>`;
-				const title =
-					option === "off"
-						? ""
-						: `<text x="72" y="${option === "above" ? 43.9 : 116.1}" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" font-weight="700" fill="#fff" text-anchor="middle">50%</text>`;
+				tile.addEventListener("click", () => how.pick(option));
 				const key = document.createElement("span");
 				key.className = "tile-key";
-				key.innerHTML = `<svg viewBox="0 0 144 144">${picture}${title}</svg>`;
+				key.innerHTML = how.picture(option);
 				const name = document.createElement("span");
 				name.className = "tile-name";
 				name.textContent = t(`tiles.${option}`);
@@ -260,6 +318,26 @@
 				return tile;
 			}),
 		);
+	}
+
+	/**
+	 * A small picture of the key, drawn like svgWithTitle in src/images.ts: icon and text together in the middle, 16 px
+	 * apart. The text is under or above the icon.
+	 * @param {string} icon Icon in imgs/actions, without ".svg". Its view box is 40 units wide.
+	 * @param {number} height How tall the icon is, in units of its view box.
+	 * @param {string} text Text on the key, "" for none.
+	 * @param {string} at "below" or "above"
+	 */
+	function keyPicture(icon, height, text, at) {
+		const ink = height * 3.6;
+		const above = at === "above";
+		const shift = text ? 16 : 0;
+		const baseline = above ? (144 - ink) / 2 + shift - 16 : (144 + ink) / 2 + shift;
+		const picture = `<image href="../imgs/actions/${icon}.svg" y="${above ? shift : -shift}" width="144" height="144"/>`;
+		const title = text
+			? `<text x="72" y="${Math.round(baseline * 10) / 10}" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" font-weight="700" fill="#fff" text-anchor="middle">${text}</text>`
+			: "";
+		return `<svg viewBox="0 0 144 144">${picture}${title}</svg>`;
 	}
 
 	/** @type {{ root: HTMLElement; close: () => void } | null} */

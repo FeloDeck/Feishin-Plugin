@@ -1,25 +1,99 @@
-import { action, type DialAction, type KeyAction, type KeyDownEvent } from "@elgato/streamdeck";
+import {
+	action,
+	type DialAction,
+	type KeyAction,
+	type KeyDownEvent,
+	type WillAppearEvent,
+	type WillDisappearEvent,
+} from "@elgato/streamdeck";
 
 import { feishin, type StateChange } from "../feishin";
-import { svgImage } from "../images";
+import { svgImage, svgWithTitle } from "../images";
 import { FeishinAction } from "./feishin-action";
+import { formatTime } from "./seek";
+
+type PlayPauseSettings = {
+	/** Show the time of the track on the key (default: on). */
+	showTime?: boolean;
+	/** Where the time goes (default: below the icon). */
+	timeAt?: "below" | "above";
+	/** Time left (default) or time played. */
+	timeShows?: "left" | "played";
+};
+
+/** Icon per state: play while paused, pause while playing. */
+const PLAY_PAUSE_ICONS = ["imgs/actions/play-pause/play.svg", "imgs/actions/play-pause/pause.svg"];
+/** How tall the play triangle is with its outline, in units of its viewBox. Pause uses it too, so the time stays put. */
+const PLAY_HEIGHT = 15.5;
 
 /**
- * Plays or pauses; state 0 shows "play" (paused), state 1 shows "pause" (playing).
+ * Plays or pauses; state 0 shows "play" (paused), state 1 shows "pause" (playing). Shows the time of the track under or
+ * above the icon (unless disabled), drawn into the image like the volume keys do.
  */
 @action({ UUID: "de.felitendo.feishin.playpause" })
-export class PlayPause extends FeishinAction {
-	protected override readonly watches: readonly StateChange[] = ["status"];
+export class PlayPause extends FeishinAction<PlayPauseSettings> {
+	protected override readonly watches: readonly StateChange[] = ["status", "song", "position"];
 
-	override onKeyDown(ev: KeyDownEvent): void {
+	/**
+	 * State and title last sent per key; position updates arrive several times a second, but the time only changes once
+	 * per second.
+	 */
+	readonly #sent = new Map<string, { state: 0 | 1; title: string | undefined }>();
+
+	override onKeyDown(ev: KeyDownEvent<PlayPauseSettings>): void {
 		this.run(ev.action, () => feishin.togglePlayPause());
 	}
 
-	protected override async render(action: DialAction | KeyAction): Promise<void> {
-		if (action.isKey()) {
-			await action.setState(feishin.state.status === "playing" ? 1 : 0);
+	override onWillAppear(ev: WillAppearEvent<PlayPauseSettings>): Promise<void> | void {
+		this.#sent.delete(ev.action.id);
+		return super.onWillAppear(ev);
+	}
+
+	override onWillDisappear(ev: WillDisappearEvent<PlayPauseSettings>): Promise<void> | void {
+		this.#sent.delete(ev.action.id);
+		return super.onWillDisappear(ev);
+	}
+
+	protected override async render(action: DialAction | KeyAction, settings: PlayPauseSettings): Promise<void> {
+		if (!action.isKey()) {
+			return;
+		}
+
+		const time = settings.showTime === false ? "" : trackTime(settings.timeShows === "played");
+		const above = settings.timeAt === "above";
+		for (const [state, icon] of PLAY_PAUSE_ICONS.entries()) {
+			const image = time ? svgWithTitle(icon, time, PLAY_HEIGHT, above) : undefined;
+			await this.setStateImage(action, state as 0 | 1, image);
+		}
+
+		// The key draws the time itself, so the title stays empty meanwhile.
+		const next = { state: feishin.state.status === "playing" ? 1 : 0, title: time ? "" : undefined } as const;
+		const sent = this.#sent.get(action.id);
+		this.#sent.set(action.id, next);
+		if (sent?.state !== next.state) {
+			await action.setState(next.state);
+		}
+		if (!sent || sent.title !== next.title) {
+			await action.setTitle(next.title);
 		}
 	}
+}
+
+/**
+ * The time left ("-2:31") or played ("1:05") of the current track, or "" while nothing is playing or paused.
+ */
+function trackTime(played: boolean): string {
+	const { song, status } = feishin.state;
+	if (!feishin.isConnected || !song || status === "stopped") {
+		return "";
+	}
+
+	const position = Math.floor(feishin.position);
+	if (played) {
+		return formatTime(position);
+	}
+
+	return song.duration > 0 ? `-${formatTime(song.duration - position)}` : "";
 }
 
 @action({ UUID: "de.felitendo.feishin.next" })

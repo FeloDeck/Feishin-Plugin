@@ -100,7 +100,7 @@ export class SeekDial extends FeishinAction<SeekDialSettings> {
 	}
 }
 
-function formatTime(seconds: number): string {
+export function formatTime(seconds: number): string {
 	const total = Math.max(0, Math.floor(seconds));
 	const h = Math.floor(total / 3600);
 	const m = Math.floor((total % 3600) / 60);

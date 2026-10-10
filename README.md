@@ -8,7 +8,7 @@ Control your Feishin music playback directly from your Elgato Stream Deck!
 
 ## Features
 
-🎵 **Play/Pause**: Start or stop your music with a single tap.
+🎵 **Play/Pause**: Start or stop your music with a single tap, with the time left or played under or above the icon.
 
 ⏭️ **Skip**: Jump to the next/previous track effortlessly.
 

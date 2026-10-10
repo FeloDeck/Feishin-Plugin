@@ -253,6 +253,35 @@ body {
 	box-shadow: 0 0 0 2px #2b7fff;
 }
 
+/* Choices side by side, like in obs-tools. */
+.segmented {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	padding: 2px;
+	border-radius: 4px;
+	background: #3d3d3d;
+}
+
+.segmented button {
+	padding: 3px 10px;
+	border: 0;
+	border-radius: 3px;
+	background: transparent;
+	color: #d8d8d8;
+	font: inherit;
+	cursor: pointer;
+}
+
+.segmented button:hover {
+	background: #454545;
+}
+
+.segmented button.on {
+	background: #2b7fff;
+	color: #fff;
+}
+
 .steps {
 	margin: 0;
 	padding: 0 12px 0 32px;
