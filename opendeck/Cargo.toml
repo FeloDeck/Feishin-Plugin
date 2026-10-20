@@ -1,0 +1,36 @@
+[package]
+name = "feishin-plugin"
+version = "0.0.0"
+edition = "2024"
+publish = false
+license = "GPL-3.0-only"
+description = "Feishin plugin for OpenDeck"
+
+[[bin]]
+name = "feishin-plugin"
+path = "src/main.rs"
+
+[dependencies]
+base64 = "0.22"
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+log = "0.4"
+openaction = "2.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order", "raw_value"] }
+tokio = { version = "1", features = ["rt", "net", "time", "sync", "macros"] }
+tokio-tungstenite = "0.28"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["test-util"] }
+
+[workspace]
+members = ["xtask"]
+
+# No debug info: smaller and faster builds.
+[profile.dev]
+debug = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

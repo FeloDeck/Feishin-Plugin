@@ -1,0 +1,25 @@
+{
+	"keys": {
+		"0": { "action": "de.felitendo.feishin.playpause" },
+		"1": { "action": "de.felitendo.feishin.previous" },
+		"2": { "action": "de.felitendo.feishin.next" },
+		"3": { "action": "de.felitendo.feishin.shuffle" },
+		"4": { "action": "de.felitendo.feishin.repeat" },
+		"5": { "action": "de.felitendo.feishin.volumedown" },
+		"6": { "action": "de.felitendo.feishin.mute" },
+		"7": { "action": "de.felitendo.feishin.volumeup" },
+		"8": { "action": "de.felitendo.feishin.rewind" },
+		"9": { "action": "de.felitendo.feishin.forward" },
+		"10": { "action": "de.felitendo.feishin.playpause", "settings": { "timeShows": "played", "timeAt": "above" } },
+		"11": { "action": "de.felitendo.feishin.volumeup", "settings": { "showVolume": false } },
+		"12": { "action": "de.felitendo.feishin.volumedown", "settings": { "step": "10", "volumeAt": "above" } },
+		"13": { "action": "de.felitendo.feishin.forward", "settings": { "seconds": "30" } },
+		"14": { "action": "de.felitendo.feishin.playpause", "settings": { "showTime": false } }
+	},
+	"dials": {
+		"0": { "action": "de.felitendo.feishin.volumedial" },
+		"1": { "action": "de.felitendo.feishin.seekdial" },
+		"2": { "action": "de.felitendo.feishin.volumedial", "settings": { "tickStep": "5" } },
+		"3": { "action": "de.felitendo.feishin.seekdial", "settings": { "tickSeconds": "10" } }
+	}
+}

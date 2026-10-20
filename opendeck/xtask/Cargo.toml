@@ -1,0 +1,17 @@
+[package]
+name = "xtask"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "Tools to build, package and test the Feishin plugin for OpenDeck: cargo xtask <command>"
+
+[dependencies]
+base64 = "0.22"
+feishin-plugin = { path = ".." }
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+serde = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
+tokio = { version = "1", features = ["rt", "net", "time", "sync", "macros"] }
+tokio-tungstenite = "0.28"
+ureq = { version = "3", default-features = false }
+zip = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs", "time"] }

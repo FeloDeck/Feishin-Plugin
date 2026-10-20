@@ -6,6 +6,10 @@ node_modules/
 *.sdPlugin/logs
 dist/
 
+# Rust (OpenDeck version)
+opendeck/target/
+opendeck/build/
+
 # Editors / OS
 .DS_Store
 .idea/
