@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="160" src="de.felitendo.feishin.sdPlugin/imgs/plugin/marketplace@2x.png" alt="Feishin">
+  <img width="160" src="https://raw.githubusercontent.com/FeloDeck/Feishin-Plugin/main/de.felitendo.feishin.sdPlugin/imgs/plugin/marketplace@2x.png" alt="Feishin">
 </p>
 
 <h1 align="center">Feishin for Stream Deck</h1>
@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <img width="720" src="previews/opendeck.png" alt="OpenDeck with Feishin keys: previous, rewind, play, fast forward, next, repeat, volume with 50% and shuffle, and the settings of a Volume Up key with pictures of the key">
+  <img width="720" src="https://raw.githubusercontent.com/FeloDeck/Feishin-Plugin/main/previews/opendeck.png" alt="OpenDeck with Feishin keys: previous, rewind, play, fast forward, next, repeat, volume with 50% and shuffle, and the settings of a Volume Up key with pictures of the key">
 </p>
 
 ## Install

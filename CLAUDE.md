@@ -66,3 +66,9 @@
    upload it there myself.
 
 Write release notes for users: what they notice, not how the code does it.
+
+## README
+
+- Pictures use full links (`https://raw.githubusercontent.com/FeloDeck/Feishin-Plugin/main/...`). The
+  OpenDeck plugin store (marketplace.tacto.live) shows the README on its own site, where relative
+  paths do not load.
