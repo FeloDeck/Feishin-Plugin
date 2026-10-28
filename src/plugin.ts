@@ -1,6 +1,6 @@
 import streamDeck from "@elgato/streamdeck";
 
-import { Next, PlayPause, Previous, Repeat, Shuffle } from "./actions/playback";
+import { Favorite, Next, PlayPause, Previous, Repeat, Shuffle } from "./actions/playback";
 import { FastForward, Rewind, SeekDial } from "./actions/seek";
 import { Mute, VolumeDial, VolumeDown, VolumeUp } from "./actions/volume";
 import { type ConnectionSettings, feishin } from "./feishin";
@@ -18,6 +18,7 @@ streamDeck.actions.registerAction(new Next());
 streamDeck.actions.registerAction(new Previous());
 streamDeck.actions.registerAction(new Shuffle());
 streamDeck.actions.registerAction(new Repeat());
+streamDeck.actions.registerAction(new Favorite());
 streamDeck.actions.registerAction(new VolumeUp());
 streamDeck.actions.registerAction(new VolumeDown());
 streamDeck.actions.registerAction(new Mute());

@@ -61,7 +61,6 @@ async fn suite(s: &mut Suite, fake: &Rc<Fake>, deck: &Deck) {
 		deck.shot("start").await?;
 		check(!deck.key(0).await?.is_empty(), "key 0 is empty")?;
 		check(deck.key(7).await? != deck.key(11).await?, "the volume does not show")?;
-		check(deck.key(0).await? != deck.key(14).await?, "the time does not show")?;
 		check(deck.key(0).await? != deck.key(10).await?, "the cover does not show")
 	})
 	.await;
@@ -116,6 +115,28 @@ async fn suite(s: &mut Suite, fake: &Rc<Fake>, deck: &Deck) {
 		deck.press(3, 100).await?;
 		expect(fake, &[json!({ "event": "shuffle" })]).await?;
 		shows(deck, 3, &off).await
+	})
+	.await;
+
+	s.test("favorite", async || {
+		let off = deck.key(14).await?;
+		deck.press(14, 100).await?;
+		expect(fake, &[json!({ "event": "favorite" })]).await?;
+		check(fake.player()["song"]["userFavorite"] == true, "not a favorite in Feishin")?;
+		changed(deck, 14, &off).await?;
+		// Changed in Feishin itself. Right after a press the deck shows the pressed key for a moment, so
+		// this is where the picture of a favorite comes from.
+		fake.set_favorite(false);
+		shows(deck, 14, &off).await?;
+		fake.set_favorite(true);
+		let on = changed(deck, 14, &off).await?;
+		reset(fake).await;
+		shows(deck, 14, &off).await?;
+		// A song that is a favorite already.
+		fake.set("song", songs()[1].clone());
+		shows(deck, 14, &on).await?;
+		reset(fake).await;
+		shows(deck, 14, &off).await
 	})
 	.await;
 

@@ -27,9 +27,9 @@ const AUTH_FAILED: u16 = 4004;
 /// The third song has no cover.
 pub fn songs() -> [Value; 3] {
 	[
-		json!({ "name": "First Song", "artistName": "Test Artist", "duration": 200_000, "imageUrl": "http://fake/cover/1" }),
-		json!({ "name": "Second Song", "artistName": "Other Artist", "duration": 3_725_000, "imageUrl": "http://fake/cover/2" }),
-		json!({ "name": "Third Song", "artistName": "Test Artist", "duration": 95_000 }),
+		json!({ "id": "1", "name": "First Song", "artistName": "Test Artist", "duration": 200_000, "imageUrl": "http://fake/cover/1", "userFavorite": false }),
+		json!({ "id": "2", "name": "Second Song", "artistName": "Other Artist", "duration": 3_725_000, "imageUrl": "http://fake/cover/2", "userFavorite": true }),
+		json!({ "id": "3", "name": "Third Song", "artistName": "Test Artist", "duration": 95_000, "userFavorite": false }),
 	]
 }
 
@@ -153,6 +153,13 @@ impl Fake {
 		self.send(json!({ "event": event, "data": data }));
 	}
 
+	/// Marks the song as a favorite or not, like in Feishin, and tells the plugin.
+	pub fn set_favorite(&self, favorite: bool) {
+		let id = self.player()["song"]["id"].clone();
+		self.player.borrow_mut()["song"]["userFavorite"] = favorite.into();
+		self.send(json!({ "event": "favorite", "data": { "favorite": favorite, "id": id } }));
+	}
+
 	fn send(&self, message: Value) {
 		let text = message.to_string();
 		self.clients.borrow_mut().retain(|c| c.send(Message::Text(text.clone().into())).is_ok());
@@ -180,6 +187,14 @@ impl Fake {
 					_ => "none",
 				};
 				self.set("repeat", next.into());
+			}
+			// Only for the song that plays, like in Feishin.
+			"favorite" => {
+				if command["id"] == player["song"]["id"]
+					&& let Some(favorite) = command["favorite"].as_bool()
+				{
+					self.set_favorite(favorite);
+				}
 			}
 			"volume" => self.set("volume", command["volume"].clone()),
 			"position" => self.set("position", command["position"].clone()),

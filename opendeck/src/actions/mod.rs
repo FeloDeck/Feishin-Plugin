@@ -78,6 +78,7 @@ pub fn all() -> Vec<&'static Kind> {
 		&playback::PREVIOUS,
 		&playback::SHUFFLE,
 		&playback::REPEAT,
+		&playback::FAVORITE,
 		&volume::VOLUME_UP,
 		&volume::VOLUME_DOWN,
 		&volume::MUTE,

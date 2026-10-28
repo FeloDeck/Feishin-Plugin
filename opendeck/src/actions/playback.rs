@@ -121,6 +121,23 @@ impl Behavior for Shuffle {
 pub static SHUFFLE: Kind =
 	Kind { uuid: "de.felitendo.feishin.shuffle", name: "Shuffle", watches: &[Change::Shuffle], behavior: &Shuffle, ..Kind::BASE };
 
+// ----- Favorite. State 0: not a favorite, state 1: a favorite. -----
+
+struct Favorite;
+
+impl Behavior for Favorite {
+	fn press(&self, k: &Key) -> bool {
+		k.feishin().toggle_favorite()
+	}
+
+	fn render(&self, k: &Key) {
+		k.set_state(u16::from(k.feishin().state().song.is_some_and(|s| s.favorite)));
+	}
+}
+
+pub static FAVORITE: Kind =
+	Kind { uuid: "de.felitendo.feishin.favorite", name: "Favorite", watches: &[Change::Song], behavior: &Favorite, ..Kind::BASE };
+
 // ----- Repeat: off, all, one. Keys have only two states, so the key changes its image. -----
 
 struct Repeat;
@@ -196,6 +213,20 @@ mod tests {
 			let (k, sd) = key(&PLAY_PAUSE, json!({ "status": "paused" }), no_settings());
 			k.key_down(false);
 			assert_eq!(to_feishin(k.feishin()), [json!({ "event": "play" })]);
+			k.request_render();
+			later().await;
+			assert_eq!(sent(&sd, "setState").last(), Some(&json!({ "state": 1 })));
+		})
+		.await;
+	}
+
+	#[tokio::test(start_paused = true)]
+	async fn favorite_shows_it_and_tells_feishin() {
+		local(async {
+			let (k, sd) = key(&FAVORITE, json!({ "song": { "id": "s1", "userFavorite": false } }), no_settings());
+			assert_eq!(sent(&sd, "setState"), [json!({ "state": 0 })]);
+			k.key_down(false);
+			assert_eq!(to_feishin(k.feishin()), [json!({ "event": "favorite", "favorite": true, "id": "s1" })]);
 			k.request_render();
 			later().await;
 			assert_eq!(sent(&sd, "setState").last(), Some(&json!({ "state": 1 })));

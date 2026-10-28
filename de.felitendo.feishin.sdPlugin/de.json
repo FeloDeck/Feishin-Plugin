@@ -24,6 +24,11 @@
 		"Name": "Wiederholen",
 		"Tooltip": "Zwischen „Nicht wiederholen“, „Alle wiederholen“ und „Titel wiederholen“ wechseln"
 	},
+	"de.felitendo.feishin.favorite": {
+		"Name": "Favorit",
+		"Tooltip": "Aktuellen Titel zu den Favoriten hinzufügen oder daraus entfernen",
+		"States": [{ "Name": "Kein Favorit" }, { "Name": "Favorit" }]
+	},
 	"de.felitendo.feishin.volumeup": {
 		"Name": "Lauter",
 		"Tooltip": "Lautstärke erhöhen (gedrückt halten für mehr)"

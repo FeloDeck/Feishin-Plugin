@@ -137,6 +137,24 @@ export class Shuffle extends FeishinAction {
 }
 
 /**
+ * Marks the current song as a favorite or not; state 0 = not a favorite, state 1 = favorite.
+ */
+@action({ UUID: "de.felitendo.feishin.favorite" })
+export class Favorite extends FeishinAction {
+	protected override readonly watches: readonly StateChange[] = ["song"];
+
+	override onKeyDown(ev: KeyDownEvent): void {
+		this.run(ev.action, () => feishin.toggleFavorite());
+	}
+
+	protected override async render(action: DialAction | KeyAction): Promise<void> {
+		if (action.isKey()) {
+			await action.setState(feishin.state.song?.favorite ? 1 : 0);
+		}
+	}
+}
+
+/**
  * Cycles through the repeat modes (off → all → one); keys only support two states, so the image is swapped instead.
  */
 @action({ UUID: "de.felitendo.feishin.repeat" })

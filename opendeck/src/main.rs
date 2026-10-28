@@ -102,6 +102,9 @@ macro_rules! actions {
 		async fn register_all() {
 			$(register_action($name).await;)*
 		}
+
+		#[cfg(test)]
+		const UUIDS: &[&str] = &[$($uuid),*];
 	};
 }
 
@@ -111,6 +114,7 @@ actions! {
 	Previous => "de.felitendo.feishin.previous",
 	Shuffle => "de.felitendo.feishin.shuffle",
 	Repeat => "de.felitendo.feishin.repeat",
+	Favorite => "de.felitendo.feishin.favorite",
 	VolumeUp => "de.felitendo.feishin.volumeup",
 	VolumeDown => "de.felitendo.feishin.volumedown",
 	Mute => "de.felitendo.feishin.mute",
@@ -217,4 +221,23 @@ fn main() {
 		}
 		std::process::exit(0);
 	});
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn every_action_of_the_manifest_is_here() {
+		let manifest: Value = serde_json::from_str(include_str!("../../de.felitendo.feishin.sdPlugin/manifest.json")).unwrap_or_default();
+		let mut in_manifest: Vec<&str> =
+			manifest["Actions"].as_array().map(|a| a.iter().filter_map(|a| a["UUID"].as_str()).collect()).unwrap_or_default();
+		let mut kinds: Vec<&str> = feishin_plugin::actions::all().iter().map(|k| k.uuid).collect();
+		let mut here = UUIDS.to_vec();
+		for list in [&mut in_manifest, &mut kinds, &mut here] {
+			list.sort_unstable();
+		}
+		assert_eq!(kinds, in_manifest, "actions::all()");
+		assert_eq!(here, in_manifest, "actions! in main.rs");
+	}
 }

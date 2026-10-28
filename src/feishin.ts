@@ -51,6 +51,9 @@ export type Song = {
 	duration: number;
 	/** Where Feishin loads the cover from, "" for none. The songs of an album share it. */
 	cover: string;
+	/** Feishin's id of the song, "" when unknown. */
+	id: string;
+	favorite: boolean;
 };
 
 export type PlayerState = {
@@ -256,6 +259,20 @@ class FeishinClient extends EventEmitter<Events> {
 
 	toggleRepeat(): boolean {
 		return this.#send({ event: "repeat" });
+	}
+
+	/**
+	 * Marks the current song as a favorite, or not any more.
+	 */
+	toggleFavorite(): boolean {
+		const song = this.#state.song;
+		if (!song?.id || !this.#send({ event: "favorite", favorite: !song.favorite, id: song.id })) {
+			return false;
+		}
+
+		// Feishin confirms with a `favorite` event once the music server has it; update right away.
+		this.#update({ song: { ...song, favorite: !song.favorite } });
+		return true;
 	}
 
 	/**
@@ -477,6 +494,16 @@ class FeishinClient extends EventEmitter<Events> {
 				break;
 			}
 
+			case "favorite": {
+				// Also comes when the favorite changed in Feishin.
+				const { favorite, id } = (message.data ?? {}) as Record<string, unknown>;
+				const song = this.#state.song;
+				if (typeof favorite === "boolean" && song?.id && id === song.id) {
+					this.#update({ song: { ...song, favorite } });
+				}
+				break;
+			}
+
 			case "proxy":
 				this.#coverLoaded(typeof message.data === "string" ? shrinkCover(message.data) : undefined);
 				break;
@@ -600,6 +627,8 @@ function parseSong(value: unknown): Song | null {
 		// Feishin reports the duration in milliseconds.
 		duration: typeof song.duration === "number" ? song.duration / 1000 : 0,
 		cover: typeof song.imageUrl === "string" ? song.imageUrl : "",
+		id: typeof song.id === "string" ? song.id : "",
+		favorite: song.userFavorite === true,
 	};
 }
 

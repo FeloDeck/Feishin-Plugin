@@ -77,7 +77,7 @@ Feishin only reports its volume after the volume changes. If a volume key says t
 ## Actions
 
 <details>
-<summary>All 12 actions</summary>
+<summary>All 13 actions</summary>
 
 | Action | What it does |
 |---|---|
@@ -86,6 +86,7 @@ Feishin only reports its volume after the volume changes. If a volume key says t
 | Previous | Play the previous track. |
 | Shuffle | Turn shuffle on or off. |
 | Repeat | Repeat off, repeat all or repeat one. |
+| Favorite | Add the track to your favorites or remove it. |
 | Volume Up | Volume up. Hold to keep going. Shows the volume. |
 | Volume Down | Volume down. Hold to keep going. Shows the volume. |
 | Mute | Mute or unmute. |
@@ -94,7 +95,7 @@ Feishin only reports its volume after the volume changes. If a volume key says t
 | Volume Dial (Stream Deck +) | Turn for volume, press to mute. |
 | Seek Dial (Stream Deck +) | Shows the track and how far it is. Turn to seek, press to play or pause. |
 
-Play/Pause, Shuffle and Repeat show what Feishin is doing. The time and the volume can go above or below the icon, or you can hide them. Play/Pause can show the album art instead of its icon. Everything is in English and German.
+Play/Pause, Shuffle, Repeat and Favorite show what Feishin is doing. The time and the volume can go above or below the icon, or you can hide them. Play/Pause can show the album art instead of its icon. Everything is in English and German.
 
 </details>
 

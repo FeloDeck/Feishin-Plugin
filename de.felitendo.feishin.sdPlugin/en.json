@@ -24,6 +24,11 @@
 		"Name": "Repeat",
 		"Tooltip": "Switch between repeat off, repeat all and repeat one"
 	},
+	"de.felitendo.feishin.favorite": {
+		"Name": "Favorite",
+		"Tooltip": "Add the current track to your favorites or remove it",
+		"States": [{ "Name": "Not a favorite" }, { "Name": "Favorite" }]
+	},
 	"de.felitendo.feishin.volumeup": {
 		"Name": "Volume Up",
 		"Tooltip": "Turn the volume up (hold to keep going)"

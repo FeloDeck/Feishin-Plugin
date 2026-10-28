@@ -113,6 +113,26 @@
 			]
 		},
 		{
+			"UUID": "de.felitendo.feishin.favorite",
+			"Name": "Favorite",
+			"Tooltip": "Add the current track to your favorites or remove it",
+			"Icon": "imgs/actions/favorite/icon",
+			"Controllers": [
+				"Keypad"
+			],
+			"DisableAutomaticStates": true,
+			"States": [
+				{
+					"Name": "Not a favorite",
+					"Image": "imgs/actions/favorite/off"
+				},
+				{
+					"Name": "Favorite",
+					"Image": "imgs/actions/favorite/on"
+				}
+			]
+		},
+		{
 			"UUID": "de.felitendo.feishin.volumeup",
 			"Name": "Volume Up",
 			"Tooltip": "Turn the volume up (hold to keep going)",

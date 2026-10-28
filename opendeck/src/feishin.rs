@@ -137,6 +137,9 @@ pub struct Song {
 	pub duration: f64,
 	/// Where Feishin loads the cover from, "" for none. The songs of an album share it.
 	pub cover: String,
+	/// The id of the song in Feishin, "" when not known.
+	pub id: String,
+	pub favorite: bool,
 }
 
 impl Song {
@@ -150,6 +153,8 @@ impl Song {
 			// Feishin sends milliseconds.
 			duration: value["duration"].as_f64().map_or(0.0, |ms| ms / 1000.0),
 			cover: value["imageUrl"].as_str().unwrap_or_default().to_string(),
+			id: value["id"].as_str().unwrap_or_default().to_string(),
+			favorite: value["userFavorite"].as_bool().unwrap_or_default(),
 		})
 	}
 }
@@ -393,6 +398,18 @@ impl Client {
 		self.send(json!({ "event": "repeat" }))
 	}
 
+	/// Marks the song as a favorite, or not any more.
+	pub fn toggle_favorite(&self) -> bool {
+		let Some(song) = self.state.borrow().song.clone().filter(|s| !s.id.is_empty()) else { return false };
+		let favorite = !song.favorite;
+		if !self.send(json!({ "event": "favorite", "favorite": favorite, "id": song.id })) {
+			return false;
+		}
+		// Feishin answers with a favorite event once the music server has it. Show it right away.
+		self.update(|s| s.song.iter_mut().for_each(|song| song.favorite = favorite), false);
+		true
+	}
+
 	/// 0 to 100.
 	pub fn set_volume(&self, volume: f64) -> bool {
 		let value = crate::js::round(volume.clamp(0.0, 100.0));
@@ -616,6 +633,14 @@ impl Client {
 					self.update(|s| s.repeat = repeat, false);
 				}
 			}
+			// Also comes when the favorite changed in Feishin.
+			"favorite" => {
+				if let Some(favorite) = data["favorite"].as_bool() {
+					let id = data["id"].as_str().unwrap_or_default();
+					let this_song = |song: &&mut Song| !song.id.is_empty() && song.id == id;
+					self.update(|s| s.song.iter_mut().filter(this_song).for_each(|song| song.favorite = favorite), false);
+				}
+			}
 			"proxy" => self.cover_loaded(data.as_str().and_then(shrink_cover)),
 			// Feishin could not load the cover. The plugin sends nothing else that Feishin answers
 			// with an error.
@@ -774,7 +799,8 @@ mod tests {
 		assert_eq!(client.connection().status, Status::Connected);
 		let state = client.state();
 		assert_eq!((state.playback, state.repeat, state.shuffle, state.volume), (Playback::Playing, Repeat::All, true, Some(40.0)));
-		assert_eq!(state.song, Some(Song { name: "Song".into(), artist: "Artist".into(), duration: 180.0, cover: String::new() }));
+		let song = Song { name: "Song".into(), artist: "Artist".into(), duration: 180.0, ..Song::default() };
+		assert_eq!(state.song, Some(song));
 		// Old Feishin versions send a boolean.
 		client.on_message(&json!({ "event": "playback", "data": false }));
 		assert_eq!(client.state().playback, Playback::Paused);
@@ -836,6 +862,25 @@ mod tests {
 		client.toggle_play_pause();
 		tokio::time::advance(Duration::from_secs(5)).await;
 		assert_eq!(client.position(), 32.0);
+	}
+
+	#[test]
+	fn favorites_change_on_a_press_and_from_feishin() {
+		let client = connected(json!({ "song": { "id": "s1", "name": "Song", "userFavorite": true } }));
+		assert!(client.toggle_favorite());
+		assert_eq!(sent(&client), [json!({ "event": "favorite", "favorite": false, "id": "s1" })]);
+		assert_eq!(client.state().song.map(|s| s.favorite), Some(false));
+		// From Feishin: only for this song.
+		client.on_message(&json!({ "event": "favorite", "data": { "favorite": true, "id": "other" } }));
+		assert_eq!(client.state().song.map(|s| s.favorite), Some(false));
+		client.on_message(&json!({ "event": "favorite", "data": { "favorite": true, "id": "s1" } }));
+		assert_eq!(client.state().song.map(|s| s.favorite), Some(true));
+		// Without a song, or its id, there is nothing to mark.
+		client.on_message(&json!({ "event": "song", "data": { "name": "No id" } }));
+		assert!(!client.toggle_favorite());
+		client.on_message(&json!({ "event": "song", "data": null }));
+		assert!(!client.toggle_favorite());
+		assert_eq!(sent(&client).len(), 1);
 	}
 
 	#[test]

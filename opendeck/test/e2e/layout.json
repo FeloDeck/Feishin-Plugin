@@ -14,7 +14,7 @@
 		"11": { "action": "de.felitendo.feishin.volumeup", "settings": { "showVolume": false } },
 		"12": { "action": "de.felitendo.feishin.volumedown", "settings": { "step": "10", "volumeAt": "above" } },
 		"13": { "action": "de.felitendo.feishin.forward", "settings": { "seconds": "30" } },
-		"14": { "action": "de.felitendo.feishin.playpause", "settings": { "showTime": false } }
+		"14": { "action": "de.felitendo.feishin.favorite" }
 	},
 	"dials": {
 		"0": { "action": "de.felitendo.feishin.volumedial" },
