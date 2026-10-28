@@ -235,7 +235,9 @@ class FeishinClient extends EventEmitter<Events> {
 			return false;
 		}
 
-		// Feishin confirms with a `playback` event; update right away so the key feels responsive.
+		// Feishin confirms with a `playback` event; update right away so the key feels responsive. Count from here, so
+		// the time doesn't jump ahead by the time spent paused.
+		this.#setPosition(this.position);
 		this.#update({ status: playing ? "paused" : "playing" });
 		return true;
 	}

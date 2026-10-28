@@ -370,7 +370,9 @@ impl Client {
 		if !self.send(json!({ "event": if playing { "pause" } else { "play" } })) {
 			return false;
 		}
-		// Feishin answers with a playback event. Show it right away, so the key reacts at once.
+		// Feishin answers with a playback event. Show it right away, so the key reacts at once. Count
+		// from here, so the time does not jump ahead by the time spent paused.
+		self.set_position(self.position());
 		self.update(|s| s.playback = if playing { Playback::Paused } else { Playback::Playing }, false);
 		true
 	}
@@ -822,6 +824,18 @@ mod tests {
 		// Nothing to seek in without a song.
 		client.on_message(&json!({ "event": "song", "data": null }));
 		assert!(!client.seek_by(5.0));
+	}
+
+	#[tokio::test(start_paused = true)]
+	async fn the_time_goes_on_from_where_it_paused() {
+		let client = connected(json!({ "status": "paused", "position": 30, "song": song(60000.0) }));
+		tokio::time::advance(Duration::from_secs(20)).await;
+		client.toggle_play_pause();
+		assert_eq!(client.position(), 30.0);
+		tokio::time::advance(Duration::from_secs(2)).await;
+		client.toggle_play_pause();
+		tokio::time::advance(Duration::from_secs(5)).await;
+		assert_eq!(client.position(), 32.0);
 	}
 
 	#[test]
