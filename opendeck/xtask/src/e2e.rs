@@ -11,7 +11,7 @@ use serde_json::{Value, json};
 
 use crate::Result;
 use crate::deck::{Deck, Suite, check, local, sleep, wait_for};
-use crate::fake::{Fake, PASSWORD};
+use crate::fake::{Fake, PASSWORD, songs};
 
 /// The commands Feishin gets in this time, at most n.
 async fn commands(fake: &Fake, n: usize, timeout: u64) -> Vec<Value> {
@@ -62,7 +62,24 @@ async fn suite(s: &mut Suite, fake: &Rc<Fake>, deck: &Deck) {
 		check(!deck.key(0).await?.is_empty(), "key 0 is empty")?;
 		check(deck.key(7).await? != deck.key(11).await?, "the volume does not show")?;
 		check(deck.key(0).await? != deck.key(14).await?, "the time does not show")?;
-		check(deck.key(0).await? != deck.key(10).await?, "time played looks like time left")
+		check(deck.key(0).await? != deck.key(10).await?, "the cover does not show")
+	})
+	.await;
+
+	s.test("play/pause shows the cover of the song", async || {
+		let first = deck.key(10).await?;
+		let before = fake.covers();
+		fake.set("song", songs()[1].clone());
+		let second = changed(deck, 10, &first).await?;
+		deck.shot("cover").await?;
+		// No cover: the icon with the time.
+		fake.set("song", songs()[2].clone());
+		changed(deck, 10, &second).await?;
+		reset(fake).await;
+		shows(deck, 10, &first).await?;
+		// The plugin keeps only the last cover, so it asks for the first one again.
+		let asked = fake.covers() - before;
+		check(asked == 2, format!("asked for {asked} covers, not 2"))
 	})
 	.await;
 

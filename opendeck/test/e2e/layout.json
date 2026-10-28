@@ -10,7 +10,7 @@
 		"7": { "action": "de.felitendo.feishin.volumeup" },
 		"8": { "action": "de.felitendo.feishin.rewind" },
 		"9": { "action": "de.felitendo.feishin.forward" },
-		"10": { "action": "de.felitendo.feishin.playpause", "settings": { "timeShows": "played", "timeAt": "above" } },
+		"10": { "action": "de.felitendo.feishin.playpause", "settings": { "showCover": true, "timeShows": "played", "timeAt": "above" } },
 		"11": { "action": "de.felitendo.feishin.volumeup", "settings": { "showVolume": false } },
 		"12": { "action": "de.felitendo.feishin.volumedown", "settings": { "step": "10", "volumeAt": "above" } },
 		"13": { "action": "de.felitendo.feishin.forward", "settings": { "seconds": "30" } },

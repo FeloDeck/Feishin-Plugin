@@ -4,7 +4,7 @@
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { statusImage, svgWithTitle } from "../../src/images.ts";
+import { statusImage, svgWithCover, svgWithTitle } from "../../src/images.ts";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 // The paths of the icons are relative to the plugin folder.
@@ -19,6 +19,12 @@ write("svg-with-title.txt", [
 	svgWithTitle("imgs/actions/play-pause/pause.svg", "-2:31 <&>", 15.5, true),
 	svgWithTitle("imgs/actions/play-pause/play.svg", "1:05", 15.5, false),
 	svgWithTitle("imgs/actions/volume/muted.svg", "0%", 15.6, true),
+]);
+write("svg-with-cover.txt", [
+	svgWithCover("data:image/jpeg;base64,AAAA", "imgs/actions/play-pause/play.svg", "-2:31", false),
+	svgWithCover("data:image/jpeg;base64,AAAA", "", "1:05 <&>", true),
+	svgWithCover("data:image/png;base64,BBBB", "imgs/actions/play-pause/play.svg", "", false),
+	svgWithCover("data:image/png;base64,BBBB", "", "", false),
 ]);
 write("status-image.txt", [
 	statusImage("Feishin offline", false),

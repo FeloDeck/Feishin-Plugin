@@ -8,11 +8,13 @@ import {
 } from "@elgato/streamdeck";
 
 import { feishin, type StateChange } from "../feishin";
-import { svgImage, svgWithTitle } from "../images";
+import { svgImage, svgWithCover, svgWithTitle } from "../images";
 import { FeishinAction } from "./feishin-action";
 import { formatTime } from "./seek";
 
 type PlayPauseSettings = {
+	/** Show the cover of the song instead of the icon (default: off). */
+	showCover?: boolean;
 	/** Show the time of the track on the key (default: on). */
 	showTime?: boolean;
 	/** Where the time goes (default: below the icon). */
@@ -28,11 +30,12 @@ const PLAY_HEIGHT = 15.5;
 
 /**
  * Plays or pauses; state 0 shows "play" (paused), state 1 shows "pause" (playing). Shows the time of the track under or
- * above the icon (unless disabled), drawn into the image like the volume keys do.
+ * above the icon (unless disabled), drawn into the image like the volume keys do. Or the cover of the song: dark with
+ * the play icon while paused, and the time at the bottom or top edge.
  */
 @action({ UUID: "de.felitendo.feishin.playpause" })
 export class PlayPause extends FeishinAction<PlayPauseSettings> {
-	protected override readonly watches: readonly StateChange[] = ["status", "song", "position"];
+	protected override readonly watches: readonly StateChange[] = ["status", "song", "position", "cover"];
 
 	/**
 	 * State and title last sent per key; position updates arrive several times a second, but the time only changes once
@@ -61,8 +64,13 @@ export class PlayPause extends FeishinAction<PlayPauseSettings> {
 
 		const time = settings.showTime === false ? "" : trackTime(settings.timeShows === "played");
 		const above = settings.timeAt === "above";
+		const cover = settings.showCover ? feishin.cover() : undefined;
 		for (const [state, icon] of PLAY_PAUSE_ICONS.entries()) {
-			const image = time ? svgWithTitle(icon, time, PLAY_HEIGHT, above) : undefined;
+			const image = cover
+				? svgWithCover(cover, state === 0 ? icon : "", time, above)
+				: time
+					? svgWithTitle(icon, time, PLAY_HEIGHT, above)
+					: undefined;
 			await this.setStateImage(action, state as 0 | 1, image);
 		}
 

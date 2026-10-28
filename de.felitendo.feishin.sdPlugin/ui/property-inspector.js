@@ -33,6 +33,9 @@
 			"tiles.off": "Off",
 			"tiles.below": "Below",
 			"tiles.above": "Above",
+			"settings.picture": "Picture",
+			"picture.icon": "Icon",
+			"picture.cover": "Album art",
 			"settings.time": "Time",
 			"settings.timeShows": "Shows",
 			"shows.left": "Time left",
@@ -79,6 +82,9 @@
 			"tiles.off": "Aus",
 			"tiles.below": "Unten",
 			"tiles.above": "Oben",
+			"settings.picture": "Bild",
+			"picture.icon": "Symbol",
+			"picture.cover": "Albumcover",
 			"settings.time": "Zeit",
 			"settings.timeShows": "Zeigt",
 			"shows.left": "Restzeit",
@@ -119,6 +125,7 @@
 	const guide = /** @type {HTMLElement} */ (document.getElementById("guide"));
 	const volumeUnknown = /** @type {HTMLElement} */ (document.getElementById("volume-unknown"));
 	const volumeTiles = /** @type {HTMLElement} */ (document.getElementById("volume-tiles"));
+	const picture = /** @type {HTMLElement} */ (document.getElementById("picture"));
 	const timeTiles = /** @type {HTMLElement} */ (document.getElementById("time-tiles"));
 	const timeShowsRow = /** @type {HTMLElement} */ (document.getElementById("time-shows-row"));
 	const timeShows = /** @type {HTMLElement} */ (document.getElementById("time-shows"));
@@ -141,6 +148,7 @@
 	});
 	const [getShowVolume, setShowVolume] = SDPIComponents.useSettings("showVolume", () => refreshTiles());
 	const [getVolumeAt, setVolumeAt] = SDPIComponents.useSettings("volumeAt", () => refreshTiles());
+	const [getShowCover, setShowCover] = SDPIComponents.useSettings("showCover", () => refreshTiles());
 	const [getShowTime, setShowTime] = SDPIComponents.useSettings("showTime", () => refreshTiles());
 	const [getTimeAt, setTimeAt] = SDPIComponents.useSettings("timeAt", () => refreshTiles());
 	const [getTimeShows, setTimeShows] = SDPIComponents.useSettings("timeShows", () => refreshTiles());
@@ -231,6 +239,7 @@
 		renderLook({
 			showVolume: await getShowVolume(),
 			volumeAt: await getVolumeAt(),
+			showCover: await getShowCover(),
 			showTime: await getShowTime(),
 			timeAt: await getTimeAt(),
 			timeShows: await getTimeShows(),
@@ -258,11 +267,20 @@
 		}
 
 		if (action === "de.felitendo.feishin.playpause") {
+			const cover = s.showCover === true;
+			renderSegments(picture, "picture", ["icon", "cover"], cover ? "cover" : "icon", (option) => {
+				setShowCover(option === "cover");
+				renderLook({ ...s, showCover: option === "cover" });
+			});
+
 			const shows = s.timeShows === "played" ? "played" : "left";
 			const time = shows === "played" ? "1:05" : "-2:31";
 			// The key as it looks while playing.
 			renderTiles(timeTiles, s.showTime === false ? "off" : s.timeAt === "above" ? "above" : "below", {
-				picture: (option) => keyPicture("play-pause/pause", 15.5, option === "off" ? "" : time, option),
+				picture: (option) => {
+					const text = option === "off" ? "" : time;
+					return cover ? coverPicture(text, option) : keyPicture("play-pause/pause", 15.5, text, option);
+				},
 				pick: (option) => {
 					setShowTime(option !== "off");
 					if (option !== "off") {
@@ -273,23 +291,35 @@
 			});
 
 			timeShowsRow.hidden = s.showTime === false;
-			timeShows.replaceChildren(
-				...["left", "played"].map((option) => {
-					const button = document.createElement("button");
-					button.type = "button";
-					button.className = option === shows ? "on" : "";
-					button.setAttribute("role", "radio");
-					button.setAttribute("aria-checked", String(option === shows));
-					button.textContent = t(`shows.${option}`);
-					button.addEventListener("click", () => {
-						setTimeShows(option);
-						renderLook({ ...s, timeShows: option });
-					});
-					return button;
-				}),
-			);
+			renderSegments(timeShows, "shows", ["left", "played"], shows, (option) => {
+				setTimeShows(option);
+				renderLook({ ...s, timeShows: option });
+			});
 		}
 		repaint();
+	}
+
+	/**
+	 * Choices side by side.
+	 * @param {HTMLElement} segments
+	 * @param {string} name Their texts are "name.option".
+	 * @param {string[]} options
+	 * @param {string} choice
+	 * @param {(option: string) => void} pick
+	 */
+	function renderSegments(segments, name, options, choice, pick) {
+		segments.replaceChildren(
+			...options.map((option) => {
+				const button = document.createElement("button");
+				button.type = "button";
+				button.className = option === choice ? "on" : "";
+				button.setAttribute("role", "radio");
+				button.setAttribute("aria-checked", String(option === choice));
+				button.textContent = t(`${name}.${option}`);
+				button.addEventListener("click", () => pick(option));
+				return button;
+			}),
+		);
 	}
 
 	/**
@@ -338,6 +368,31 @@
 			? `<text x="72" y="${Math.round(baseline * 10) / 10}" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" font-weight="700" fill="#fff" text-anchor="middle">${text}</text>`
 			: "";
 		return `<svg viewBox="0 0 144 144">${picture}${title}</svg>`;
+	}
+
+	/**
+	 * A small picture of the key with a cover, drawn like svgWithCover in src/images.ts. A made up cover stands in for
+	 * the one of the song.
+	 * @param {string} text Text on the key, "" for none.
+	 * @param {string} at "below" or "above"
+	 */
+	function coverPicture(text, at) {
+		const cover =
+			`<rect width="144" height="144" fill="#4f46e5"/><circle cx="112" cy="30" r="64" fill="#ec4899" fill-opacity="0.85"/>` +
+			`<circle cx="24" cy="128" r="56" fill="#f59e0b" fill-opacity="0.8"/>`;
+		if (!text) {
+			return `<svg viewBox="0 0 144 144">${cover}</svg>`;
+		}
+
+		const above = at === "above";
+		// Several pictures are on the page, and ids are for the whole page.
+		const id = `shade-${at}`;
+		const shade =
+			`<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="${above ? 0.7 : 0}"/>` +
+			`<stop offset="1" stop-color="#000" stop-opacity="${above ? 0 : 0.7}"/></linearGradient></defs>` +
+			`<rect y="${above ? 0 : 84}" width="144" height="60" fill="url(#${id})"/>`;
+		const title = `<text x="72" y="${above ? 30 : 130}" font-family="'Liberation Sans',Arial,sans-serif" font-size="22" font-weight="700" fill="#fff" text-anchor="middle">${text}</text>`;
+		return `<svg viewBox="0 0 144 144">${cover}${shade}${title}</svg>`;
 	}
 
 	/** @type {{ root: HTMLElement; close: () => void } | null} */

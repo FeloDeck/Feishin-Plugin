@@ -1,6 +1,8 @@
 import { EventEmitter } from "node:events";
 import WebSocket from "ws";
 
+import { shrinkCover } from "./cover";
+
 /**
  * Connection settings, stored in the plugin's global settings so they apply to every Feishin action.
  * Values are kept as strings because that is what the property inspector's text fields produce.
@@ -47,6 +49,8 @@ export type Song = {
 	artist: string;
 	/** Duration in seconds. */
 	duration: number;
+	/** Where Feishin loads the cover from, "" for none. The songs of an album share it. */
+	cover: string;
 };
 
 export type PlayerState = {
@@ -61,9 +65,10 @@ export type PlayerState = {
 };
 
 /**
- * Emitted with the list of properties that changed; `position` is emitted for seeks and progress updates.
+ * Emitted with the list of properties that changed; `position` is emitted for seeks and progress updates, `cover` once
+ * a cover came in.
  */
-export type StateChange = keyof PlayerState | "position";
+export type StateChange = keyof PlayerState | "position" | "cover";
 
 type Events = {
 	connection: [ConnectionInfo];
@@ -79,6 +84,8 @@ const SETTLE_MS = 700;
 const RECONNECT_DELAYS_MS = [1000, 2000, 3000, 5000];
 const UNAUTHORIZED_RETRY_MS = 15000;
 const HANDSHAKE_TIMEOUT_MS = 5000;
+/** Feishin doesn't answer when the song has no cover (any more); ask again after this. */
+const COVER_TIMEOUT_MS = 15000;
 
 // Close codes used by Feishin's remote control server (src/main/features/core/remote/index.ts).
 const CLOSE_SERVER_SHUTDOWN = 4000;
@@ -117,6 +124,11 @@ class FeishinClient extends EventEmitter<Events> {
 	#volumeSettleUntil = 0;
 	#volumeBeforeMute: number | undefined;
 
+	/** The cover last loaded, by where Feishin loads it from. `image` is undefined when it couldn't be loaded. */
+	#cover: { url: string; image: string | undefined } | undefined;
+	/** Feishin answers a cover request without saying which cover it is, so only one is asked for at a time. */
+	#coverRequest: { url: string; at: number } | undefined;
+
 	constructor() {
 		super();
 		// Every action type subscribes once, which is more than Node's default warning threshold of 10.
@@ -152,6 +164,27 @@ class FeishinClient extends EventEmitter<Events> {
 		const elapsed = this.#state.status === "playing" ? (Date.now() - this.#positionUpdatedAt) / 1000 : 0;
 		const position = this.#position + elapsed;
 		return this.#state.song ? Math.min(position, this.#state.song.duration) : position;
+	}
+
+	/**
+	 * The cover of the current song as a small data URL for the keys; undefined while there is none or it is still
+	 * loading. Asks Feishin for it the first time: Feishin loads it from the music server ("proxy").
+	 */
+	cover(): string | undefined {
+		const url = this.#state.song?.cover;
+		if (!url) {
+			return undefined;
+		}
+
+		if (this.#cover?.url === url) {
+			return this.#cover.image;
+		}
+
+		const request = this.#coverRequest;
+		if ((!request || Date.now() - request.at > COVER_TIMEOUT_MS) && this.#send({ event: "proxy" })) {
+			this.#coverRequest = { url, at: Date.now() };
+		}
+		return undefined;
 	}
 
 	get #address(): string {
@@ -292,6 +325,7 @@ class FeishinClient extends EventEmitter<Events> {
 		clearTimeout(this.#reconnectTimer);
 		this.#reconnectTimer = undefined;
 		this.#lastError = undefined;
+		this.#coverRequest = undefined;
 		if (announce || this.#connection.status === "connected") {
 			this.#setConnection({ status: "connecting", address: this.#address });
 		}
@@ -440,7 +474,28 @@ class FeishinClient extends EventEmitter<Events> {
 				}
 				break;
 			}
+
+			case "proxy":
+				this.#coverLoaded(typeof message.data === "string" ? shrinkCover(message.data) : undefined);
+				break;
+
+			case "error":
+				// Feishin couldn't load the cover. The plugin sends nothing else that Feishin answers with an error.
+				this.#coverLoaded(undefined);
+				break;
 		}
+	}
+
+	#coverLoaded(image: string | undefined): void {
+		const request = this.#coverRequest;
+		if (!request) {
+			return;
+		}
+
+		this.#coverRequest = undefined;
+		this.#cover = { url: request.url, image };
+		// Also when the song changed meanwhile: the keys then ask for the new cover.
+		this.emit("state", new Set(["cover"]));
 	}
 
 	#update(partial: Partial<PlayerState>, includePosition = false): void {
@@ -542,6 +597,7 @@ function parseSong(value: unknown): Song | null {
 		artist: typeof song.artistName === "string" ? song.artistName : "",
 		// Feishin reports the duration in milliseconds.
 		duration: typeof song.duration === "number" ? song.duration / 1000 : 0,
+		cover: typeof song.imageUrl === "string" ? song.imageUrl : "",
 	};
 }
 

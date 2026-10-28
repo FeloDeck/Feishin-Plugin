@@ -31,12 +31,12 @@ const TITLE_GAP = 16;
 const parts = new Map<string, { viewBox: number[]; body: string }>();
 
 /**
- * An SVG from the plugin folder with a line of text under or above it, both together in the middle of the key. Keys
- * draw the text themselves: OpenDeck puts its title at the bottom edge, far from the icon.
+ * An SVG from the plugin folder as a group that fills the key.
  * @param path Path relative to the .sdPlugin folder. The icon must be in the middle of its square viewBox.
- * @param height How tall the icon is, in units of the viewBox.
+ * @param dy How far to move it down.
+ * @returns The group, and how much the icon was scaled.
  */
-export function svgWithTitle(path: string, title: string, height: number, above = false): string {
+function iconGroup(path: string, dy: number): { group: string; scale: number } {
 	let part = parts.get(path);
 	if (part === undefined) {
 		const svg = readFileSync(path, "utf8");
@@ -47,16 +47,60 @@ export function svgWithTitle(path: string, title: string, height: number, above 
 
 	const [x = 0, y = 0, width = KEY_SIZE] = part.viewBox;
 	const scale = KEY_SIZE / width;
+	return { group: `<g transform="translate(${-x * scale} ${-y * scale + dy}) scale(${scale})">${part.body}</g>`, scale };
+}
+
+function titleText(title: string, baseline: number): string {
+	const text = title.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+	return `<text x="${KEY_SIZE / 2}" y="${Math.round(baseline * 10) / 10}" font-family="${TITLE_FONT}" font-size="${TITLE_SIZE}" font-weight="700" fill="#FFFFFF" text-anchor="middle">${text}</text>`;
+}
+
+/**
+ * An SVG from the plugin folder with a line of text under or above it, both together in the middle of the key. Keys
+ * draw the text themselves: OpenDeck puts its title at the bottom edge, far from the icon.
+ * @param path Path relative to the .sdPlugin folder. The icon must be in the middle of its square viewBox.
+ * @param height How tall the icon is, in units of the viewBox.
+ */
+export function svgWithTitle(path: string, title: string, height: number, above = false): string {
 	// The icon moves away from the text by half of what the text needs, so both are centered together.
 	const shift = (TITLE_GAP + TITLE_INK) / 2;
+	const { group, scale } = iconGroup(path, above ? shift : -shift);
 	const ink = height * scale;
 	const baseline = above ? (KEY_SIZE - ink) / 2 + shift - TITLE_GAP : (KEY_SIZE + ink) / 2 + shift;
-	const text = title.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 	const svg =
 		`<svg xmlns="http://www.w3.org/2000/svg" width="${KEY_SIZE}" height="${KEY_SIZE}" viewBox="0 0 ${KEY_SIZE} ${KEY_SIZE}">` +
-		`<g transform="translate(${-x * scale} ${-y * scale + (above ? shift : -shift)}) scale(${scale})">${part.body}</g>` +
-		`<text x="${KEY_SIZE / 2}" y="${Math.round(baseline * 10) / 10}" font-family="${TITLE_FONT}" font-size="${TITLE_SIZE}" font-weight="700" fill="#FFFFFF" text-anchor="middle">${text}</text></svg>`;
+		`${group}${titleText(title, baseline)}</svg>`;
 	return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
+
+/** Space between the edge of the key and the text on a cover. */
+const COVER_MARGIN = 14;
+/** How far the shade behind the text on a cover reaches into the key. */
+const SHADE = 60;
+
+/**
+ * A cover that fills the key, darker with an icon in the middle (like the play icon while paused), and with a line of
+ * text at the bottom or top edge on a shade.
+ * @param cover The cover as a data URL.
+ * @param icon Path of the icon relative to the .sdPlugin folder, or "" for none.
+ * @param title Text on the key, "" for none.
+ */
+export function svgWithCover(cover: string, icon: string, title: string, above = false): string {
+	let svg =
+		`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${KEY_SIZE}" height="${KEY_SIZE}" viewBox="0 0 ${KEY_SIZE} ${KEY_SIZE}">` +
+		`<image width="${KEY_SIZE}" height="${KEY_SIZE}" preserveAspectRatio="xMidYMid slice" xlink:href="${cover}"/>`;
+	if (icon) {
+		svg += `<rect width="${KEY_SIZE}" height="${KEY_SIZE}" fill="#000000" fill-opacity="0.5"/>${iconGroup(icon, 0).group}`;
+	}
+	if (title) {
+		const [from, to] = above ? [0.7, 0] : [0, 0.7];
+		svg +=
+			`<defs><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000000" stop-opacity="${from}"/>` +
+			`<stop offset="1" stop-color="#000000" stop-opacity="${to}"/></linearGradient></defs>` +
+			`<rect y="${above ? 0 : KEY_SIZE - SHADE}" width="${KEY_SIZE}" height="${SHADE}" fill="url(#shade)"/>` +
+			titleText(title, above ? COVER_MARGIN + TITLE_INK : KEY_SIZE - COVER_MARGIN);
+	}
+	return `data:image/svg+xml;base64,${Buffer.from(`${svg}</svg>`).toString("base64")}`;
 }
 
 /** Font, colors and glyphs of the status image in the obs-tools plugin, so both look the same. */

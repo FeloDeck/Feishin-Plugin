@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 use base64::Engine;
 use futures_util::{SinkExt, StreamExt};
+use image::{ImageFormat, Rgba, RgbaImage};
 use serde_json::{Value, json};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::mpsc::{UnboundedSender, unbounded_channel};
@@ -23,19 +24,39 @@ const SERVER_SHUTDOWN: u16 = 4000;
 const SETTINGS_CHANGED: u16 = 4002;
 const AUTH_FAILED: u16 = 4004;
 
+/// The third song has no cover.
 pub fn songs() -> [Value; 3] {
 	[
-		json!({ "name": "First Song", "artistName": "Test Artist", "duration": 200_000 }),
-		json!({ "name": "Second Song", "artistName": "Other Artist", "duration": 3_725_000 }),
+		json!({ "name": "First Song", "artistName": "Test Artist", "duration": 200_000, "imageUrl": "http://fake/cover/1" }),
+		json!({ "name": "Second Song", "artistName": "Other Artist", "duration": 3_725_000, "imageUrl": "http://fake/cover/2" }),
 		json!({ "name": "Third Song", "artistName": "Test Artist", "duration": 95_000 }),
 	]
+}
+
+/// A cover as Feishin sends it (base64): 600 x 600 like on a music server, warm for the first song,
+/// cool for the others, with a ring in the middle.
+fn cover(url: &str) -> String {
+	let [r, g, b] = if url.ends_with('1') { [235.0, 95.0, 45.0] } else { [40.0, 150.0, 225.0] };
+	let image = RgbaImage::from_fn(600, 600, |x, y| {
+		let (x, y) = (f64::from(x), f64::from(y));
+		if ((x - 300.0).hypot(y - 300.0) - 200.0).abs() < 14.0 {
+			return Rgba([255, 255, 255, 255]);
+		}
+		let light = 0.35 + 0.65 * (1200.0 - x - y) / 1200.0;
+		Rgba([(r * light) as u8, (g * light) as u8, (b * light) as u8, 255])
+	});
+	let mut png = std::io::Cursor::new(Vec::new());
+	let _ = image.write_to(&mut png, ImageFormat::Png);
+	base64::engine::general_purpose::STANDARD.encode(png.into_inner())
 }
 
 pub struct Fake {
 	/// Like the state message of Feishin: status, repeat, shuffle, volume, song, position.
 	player: RefCell<Value>,
-	/// The commands the plugin sent, oldest first.
+	/// The commands the plugin sent, oldest first. Without the requests for covers.
 	got: RefCell<Vec<Value>>,
+	/// How many covers the plugin asked for.
+	covers: Cell<usize>,
 	password: RefCell<String>,
 	clients: RefCell<Vec<UnboundedSender<Message>>>,
 	server: RefCell<Option<AbortHandle>>,
@@ -52,6 +73,7 @@ impl Fake {
 		Rc::new(Fake {
 			player: RefCell::new(Fake::start_state()),
 			got: RefCell::default(),
+			covers: Cell::new(0),
 			password: RefCell::new(PASSWORD.into()),
 			clients: RefCell::default(),
 			server: RefCell::default(),
@@ -98,6 +120,10 @@ impl Fake {
 
 	pub fn clients(&self) -> usize {
 		self.clients.borrow().len()
+	}
+
+	pub fn covers(&self) -> usize {
+		self.covers.get()
 	}
 
 	pub fn player(&self) -> Value {
@@ -157,6 +183,15 @@ impl Fake {
 			}
 			"volume" => self.set("volume", command["volume"].clone()),
 			"position" => self.set("position", command["position"].clone()),
+			// Feishin loads the cover of the song and sends it back, or nothing without a cover. To
+			// every client here, it only goes to the one that asked.
+			"proxy" => {
+				self.covers.set(self.covers.get() + 1);
+				if let Some(url) = player["song"]["imageUrl"].as_str() {
+					self.send(json!({ "event": "proxy", "data": cover(url) }));
+				}
+				return;
+			}
 			_ => {}
 		}
 		self.got.borrow_mut().push(command);

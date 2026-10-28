@@ -1,6 +1,7 @@
 // Feishin for OpenDeck. The plugin runs on one thread: every event from OpenDeck or Feishin runs to its
 // end before the next one.
 pub mod actions;
+pub mod cover;
 pub mod emitter;
 pub mod feishin;
 pub mod i18n;

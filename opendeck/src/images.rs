@@ -45,11 +45,9 @@ const TITLE_INK: f64 = 16.0;
 /// Space between icon and text.
 const TITLE_GAP: f64 = 16.0;
 
-/// An icon with a line of text under or above it, both together in the middle of the key. Keys draw
-/// the text themselves: OpenDeck puts its title at the bottom edge, far from the icon.
-/// The icon must be in the middle of its square viewBox. height: how tall the icon is, in units of
-/// its viewBox.
-pub fn svg_with_title(path: &str, title: &str, height: f64, above: bool) -> String {
+/// An icon as a group that fills the key, moved down by dy. The icon must be in the middle of its
+/// square viewBox. Also returns how much it was scaled.
+fn icon_group(path: &str, dy: f64) -> (String, f64) {
 	let svg = icon(path);
 	let view_box: Vec<f64> = svg
 		.split("viewBox=\"")
@@ -67,22 +65,64 @@ pub fn svg_with_title(path: &str, title: &str, height: f64, above: bool) -> Stri
 	let (x, y, width) =
 		(view_box.first().copied().unwrap_or(0.0), view_box.get(1).copied().unwrap_or(0.0), view_box.get(2).copied().unwrap_or(KEY_SIZE));
 	let scale = KEY_SIZE / width;
-	// The icon moves away from the text by half of what the text needs, so both are in the middle.
-	let shift = (TITLE_GAP + TITLE_INK) / 2.0;
-	let ink = height * scale;
-	let baseline = if above { (KEY_SIZE - ink) / 2.0 + shift - TITLE_GAP } else { (KEY_SIZE + ink) / 2.0 + shift };
-	let size = fmt(KEY_SIZE);
-	let svg = format!(
-		r##"<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}"><g transform="translate({} {}) scale({})">{body}</g><text x="{}" y="{}" font-family="{TITLE_FONT}" font-size="{}" font-weight="700" fill="#FFFFFF" text-anchor="middle">{}</text></svg>"##,
-		fmt(-x * scale),
-		fmt(-y * scale + if above { shift } else { -shift }),
-		fmt(scale),
+	(format!(r#"<g transform="translate({} {}) scale({})">{body}</g>"#, fmt(-x * scale), fmt(-y * scale + dy), fmt(scale)), scale)
+}
+
+fn title_text(title: &str, baseline: f64) -> String {
+	format!(
+		r##"<text x="{}" y="{}" font-family="{TITLE_FONT}" font-size="{}" font-weight="700" fill="#FFFFFF" text-anchor="middle">{}</text>"##,
 		fmt(KEY_SIZE / 2.0),
 		fmt(round(baseline * 10.0) / 10.0),
 		fmt(TITLE_SIZE),
 		escape(title),
+	)
+}
+
+/// An icon with a line of text under or above it, both together in the middle of the key. Keys draw
+/// the text themselves: OpenDeck puts its title at the bottom edge, far from the icon.
+/// The icon must be in the middle of its square viewBox. height: how tall the icon is, in units of
+/// its viewBox.
+pub fn svg_with_title(path: &str, title: &str, height: f64, above: bool) -> String {
+	// The icon moves away from the text by half of what the text needs, so both are in the middle.
+	let shift = (TITLE_GAP + TITLE_INK) / 2.0;
+	let (group, scale) = icon_group(path, if above { shift } else { -shift });
+	let ink = height * scale;
+	let baseline = if above { (KEY_SIZE - ink) / 2.0 + shift - TITLE_GAP } else { (KEY_SIZE + ink) / 2.0 + shift };
+	let size = fmt(KEY_SIZE);
+	data_url(&format!(
+		r#"<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">{group}{}</svg>"#,
+		title_text(title, baseline)
+	))
+}
+
+/// Space between the edge of the key and the text on a cover.
+const COVER_MARGIN: f64 = 14.0;
+/// How far the shade behind the text on a cover reaches into the key.
+const SHADE: f64 = 60.0;
+
+/// A cover (a data URL) that fills the key, darker with an icon in the middle (like the play icon
+/// while paused), and with a line of text at the bottom or top edge on a shade. "" for no icon or
+/// no text.
+pub fn svg_with_cover(cover: &str, icon: &str, title: &str, above: bool) -> String {
+	let size = fmt(KEY_SIZE);
+	let mut svg = format!(
+		r#"<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{size}" height="{size}" viewBox="0 0 {size} {size}"><image width="{size}" height="{size}" preserveAspectRatio="xMidYMid slice" xlink:href="{cover}"/>"#
 	);
-	data_url(&svg)
+	if !icon.is_empty() {
+		svg += &format!(r##"<rect width="{size}" height="{size}" fill="#000000" fill-opacity="0.5"/>{}"##, icon_group(icon, 0.0).0);
+	}
+	if !title.is_empty() {
+		let (from, to) = if above { (0.7, 0.0) } else { (0.0, 0.7) };
+		svg += &format!(
+			r##"<defs><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000000" stop-opacity="{}"/><stop offset="1" stop-color="#000000" stop-opacity="{}"/></linearGradient></defs><rect y="{}" width="{size}" height="{}" fill="url(#shade)"/>{}"##,
+			fmt(from),
+			fmt(to),
+			fmt(if above { 0.0 } else { KEY_SIZE - SHADE }),
+			fmt(SHADE),
+			title_text(title, if above { COVER_MARGIN + TITLE_INK } else { KEY_SIZE - COVER_MARGIN }),
+		);
+	}
+	data_url(&(svg + "</svg>"))
 }
 
 // Font, colors and glyphs of the status image of OBS Tools, so both look the same.
@@ -156,6 +196,22 @@ mod tests {
 		assert_eq!(expected.len(), cases.len());
 		for ((path, title, height, above), expected) in cases.into_iter().zip(expected) {
 			assert_eq!(svg_with_title(path, title, height, above), format!("data:image/svg+xml;base64,{expected}"), "{path}");
+		}
+	}
+
+	// test/svg-with-cover.txt: what svgWithCover of src/images.ts makes.
+	#[test]
+	fn cover_pictures_are_the_same_as_in_the_stream_deck_app_version() {
+		let cases = [
+			("data:image/jpeg;base64,AAAA", "imgs/actions/play-pause/play.svg", "-2:31", false),
+			("data:image/jpeg;base64,AAAA", "", "1:05 <&>", true),
+			("data:image/png;base64,BBBB", "imgs/actions/play-pause/play.svg", "", false),
+			("data:image/png;base64,BBBB", "", "", false),
+		];
+		let expected: Vec<&str> = include_str!("../test/svg-with-cover.txt").lines().collect();
+		assert_eq!(expected.len(), cases.len());
+		for ((cover, icon, title, above), expected) in cases.into_iter().zip(expected) {
+			assert_eq!(svg_with_cover(cover, icon, title, above), format!("data:image/svg+xml;base64,{expected}"), "{icon} {title}");
 		}
 	}
 

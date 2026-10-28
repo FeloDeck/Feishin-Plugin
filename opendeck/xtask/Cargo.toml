@@ -9,6 +9,7 @@ description = "Tools to build, package and test the Feishin plugin for OpenDeck:
 base64 = "0.22"
 feishin-plugin = { path = ".." }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 serde = "1"
 serde_json = { version = "1", features = ["preserve_order"] }
 tokio = { version = "1", features = ["rt", "net", "time", "sync", "macros"] }

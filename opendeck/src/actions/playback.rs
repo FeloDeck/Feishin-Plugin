@@ -4,14 +4,17 @@ use serde::Deserialize;
 use super::seek::format_time;
 use super::{Behavior, Key, Kind};
 use crate::feishin::{Change, Playback};
-use crate::images::{svg_image, svg_with_title};
+use crate::images::{svg_image, svg_with_cover, svg_with_title};
 
 // ----- Play/Pause. State 0 shows "play" (paused), state 1 "pause" (playing). The time of the track -----
-// goes under or above the icon (unless turned off), drawn into the image like on the volume keys.
+// goes under or above the icon (unless turned off), drawn into the image like on the volume keys. Or
+// the cover of the song: dark with the play icon while paused, and the time at the bottom or top edge.
 
 #[derive(Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub(super) struct PlayPauseSettings {
+	/// The cover instead of the icon.
+	show_cover: bool,
 	show_time: bool,
 	/// "below" or "above".
 	time_at: String,
@@ -21,7 +24,7 @@ pub(super) struct PlayPauseSettings {
 
 impl Default for PlayPauseSettings {
 	fn default() -> Self {
-		PlayPauseSettings { show_time: true, time_at: String::new(), time_shows: String::new() }
+		PlayPauseSettings { show_cover: false, show_time: true, time_at: String::new(), time_shows: String::new() }
 	}
 }
 
@@ -56,8 +59,14 @@ impl Behavior for PlayPause {
 	fn render(&self, k: &Key) {
 		let s: PlayPauseSettings = k.settings();
 		let time = if s.show_time { track_time(k, s.time_shows == "played") } else { String::new() };
+		let above = s.time_at == "above";
+		let cover = if s.show_cover { k.feishin().cover() } else { None };
 		for (state, icon) in (0..).zip(PLAY_PAUSE_ICONS) {
-			k.set_state_image(state, (!time.is_empty()).then(|| svg_with_title(icon, &time, PLAY_HEIGHT, s.time_at == "above")));
+			let image = match &cover {
+				Some(cover) => Some(svg_with_cover(cover, if state == 0 { icon } else { "" }, &time, above)),
+				None => (!time.is_empty()).then(|| svg_with_title(icon, &time, PLAY_HEIGHT, above)),
+			};
+			k.set_state_image(state, image);
 		}
 		k.set_state(u16::from(k.feishin().state().playback == Playback::Playing));
 		// The key draws the time itself, so the title stays empty meanwhile.
@@ -68,7 +77,7 @@ impl Behavior for PlayPause {
 pub static PLAY_PAUSE: Kind = Kind {
 	uuid: "de.felitendo.feishin.playpause",
 	name: "PlayPause",
-	watches: &[Change::Playback, Change::Song, Change::Position],
+	watches: &[Change::Playback, Change::Song, Change::Position, Change::Cover],
 	behavior: &PlayPause,
 	..Kind::BASE
 };
@@ -156,6 +165,29 @@ mod tests {
 		k.update_settings(Some(&json!({ "showTime": false })));
 		assert_eq!(sent(&sd, "setImage").last(), Some(&json!({ "target": 0, "state": 1 })));
 		assert_eq!(sent(&sd, "setTitle").last(), Some(&json!({ "target": 0 })));
+	}
+
+	#[tokio::test(start_paused = true)]
+	async fn play_pause_can_show_the_cover() {
+		local(async {
+			let song = json!({ "name": "Song", "duration": 180000, "imageUrl": "http://music/cover" });
+			let (k, sd) = key(&PLAY_PAUSE, json!({ "status": "paused", "position": 29, "song": song }), json!({ "showCover": true }));
+			// The icon until the cover is there.
+			assert_eq!(to_feishin(k.feishin()), [json!({ "event": "proxy" })]);
+			assert_eq!(
+				sent(&sd, "setImage")[0]["image"].as_str(),
+				Some(svg_with_title(PLAY_PAUSE_ICONS[0], "-2:31", PLAY_HEIGHT, false).as_str())
+			);
+			k.feishin().on_message(&json!({ "event": "proxy", "data": crate::cover::testing::png(8, 8) }));
+			k.request_render();
+			later().await;
+			let cover = k.feishin().cover().unwrap_or_default();
+			let images = sent(&sd, "setImage");
+			let images = &images[images.len() - 2..];
+			assert_eq!(images[0], json!({ "target": 0, "state": 0, "image": svg_with_cover(&cover, PLAY_PAUSE_ICONS[0], "-2:31", false) }));
+			assert_eq!(images[1], json!({ "target": 0, "state": 1, "image": svg_with_cover(&cover, "", "-2:31", false) }));
+		})
+		.await;
 	}
 
 	#[tokio::test(start_paused = true)]

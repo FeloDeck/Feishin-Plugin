@@ -13,6 +13,7 @@ use tokio::time::Instant;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 
+use crate::cover::shrink_cover;
 use crate::emitter::Emitter;
 use crate::timers::{Timer, set_timeout};
 
@@ -30,6 +31,8 @@ const RECONNECT_DELAYS_MS: [f64; 4] = [1000.0, 2000.0, 3000.0, 5000.0];
 const UNAUTHORIZED_RETRY_MS: f64 = 15000.0;
 const SETTINGS_CHANGED_RETRY_MS: f64 = 500.0;
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
+/// Feishin does not answer when the song has no cover (any more). Ask again after this.
+const COVER_TIMEOUT: Duration = Duration::from_secs(15);
 
 // Close codes of the remote control server of Feishin (src/main/features/core/remote/index.ts).
 const CLOSE_SERVER_SHUTDOWN: u16 = 4000;
@@ -132,6 +135,8 @@ pub struct Song {
 	pub artist: String,
 	/// In seconds.
 	pub duration: f64,
+	/// Where Feishin loads the cover from, "" for none. The songs of an album share it.
+	pub cover: String,
 }
 
 impl Song {
@@ -144,6 +149,7 @@ impl Song {
 			artist: value["artistName"].as_str().unwrap_or_default().to_string(),
 			// Feishin sends milliseconds.
 			duration: value["duration"].as_f64().map_or(0.0, |ms| ms / 1000.0),
+			cover: value["imageUrl"].as_str().unwrap_or_default().to_string(),
 		})
 	}
 }
@@ -158,7 +164,7 @@ pub struct PlayerState {
 	pub song: Option<Song>,
 }
 
-/// What changed in the player state. Position: a seek, or time passing.
+/// What changed in the player state. Position: a seek, or time passing. Cover: a cover came in.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Change {
 	Playback,
@@ -167,6 +173,7 @@ pub enum Change {
 	Volume,
 	Song,
 	Position,
+	Cover,
 }
 
 /// Where and how to log in.
@@ -236,6 +243,11 @@ pub struct Client {
 	seek_settles: Cell<Instant>,
 	volume_settles: Cell<Instant>,
 	volume_before_mute: Cell<Option<f64>>,
+	/// The cover last loaded, by where Feishin loads it from. None in it: it could not be loaded.
+	cover: RefCell<Option<(String, Option<String>)>>,
+	/// Feishin answers a cover request without saying which cover it is, so only one is asked for
+	/// at a time: where from, and when.
+	cover_request: RefCell<Option<(String, Instant)>>,
 	me: Weak<Client>,
 	pub on_connection: Emitter<Connection>,
 	pub on_state: Emitter<[Change]>,
@@ -264,6 +276,8 @@ impl Client {
 			seek_settles: Cell::new(now),
 			volume_settles: Cell::new(now),
 			volume_before_mute: Cell::new(None),
+			cover: RefCell::new(None),
+			cover_request: RefCell::new(None),
 			me: me.clone(),
 			on_connection: Emitter::default(),
 			on_state: Emitter::default(),
@@ -301,6 +315,23 @@ impl Client {
 			Some(song) => position.min(song.duration),
 			None => position,
 		}
+	}
+
+	/// The cover of the current song as a small data URL for the keys. None while there is none or
+	/// it is still loading. Asks Feishin for it the first time: Feishin loads it from the music server
+	/// ("proxy").
+	pub fn cover(&self) -> Option<String> {
+		let url = self.state.borrow().song.as_ref().map(|s| s.cover.clone()).filter(|url| !url.is_empty())?;
+		if let Some((loaded, image)) = self.cover.borrow().as_ref()
+			&& *loaded == url
+		{
+			return image.clone();
+		}
+		let waiting = self.cover_request.borrow().as_ref().is_some_and(|(_, at)| at.elapsed() <= COVER_TIMEOUT);
+		if !waiting && self.send(json!({ "event": "proxy" })) {
+			*self.cover_request.borrow_mut() = Some((url, Instant::now()));
+		}
+		None
 	}
 
 	/// New connection settings. Connects again when something changed.
@@ -413,6 +444,7 @@ impl Client {
 	fn connect(&self, announce: bool) {
 		self.clear_retry();
 		*self.failure.borrow_mut() = None;
+		*self.cover_request.borrow_mut() = None;
 		let settings = self.settings.borrow().clone();
 		if announce || self.connected() {
 			self.set_connection(Status::Connecting, "");
@@ -582,8 +614,19 @@ impl Client {
 					self.update(|s| s.repeat = repeat, false);
 				}
 			}
+			"proxy" => self.cover_loaded(data.as_str().and_then(shrink_cover)),
+			// Feishin could not load the cover. The plugin sends nothing else that Feishin answers
+			// with an error.
+			"error" => self.cover_loaded(None),
 			_ => {}
 		}
+	}
+
+	fn cover_loaded(&self, image: Option<String>) {
+		let Some((url, _)) = self.cover_request.borrow_mut().take() else { return };
+		*self.cover.borrow_mut() = Some((url, image));
+		// Also when the song changed meanwhile: the keys then ask for the new cover.
+		self.on_state.emit(&[Change::Cover]);
 	}
 
 	/// Changes the state and tells the keys what changed. position: tell them about the position too.
@@ -729,7 +772,7 @@ mod tests {
 		assert_eq!(client.connection().status, Status::Connected);
 		let state = client.state();
 		assert_eq!((state.playback, state.repeat, state.shuffle, state.volume), (Playback::Playing, Repeat::All, true, Some(40.0)));
-		assert_eq!(state.song, Some(Song { name: "Song".into(), artist: "Artist".into(), duration: 180.0 }));
+		assert_eq!(state.song, Some(Song { name: "Song".into(), artist: "Artist".into(), duration: 180.0, cover: String::new() }));
 		// Old Feishin versions send a boolean.
 		client.on_message(&json!({ "event": "playback", "data": false }));
 		assert_eq!(client.state().playback, Playback::Paused);
@@ -786,6 +829,43 @@ mod tests {
 		assert_eq!(Settings::new(" ", "", "", ""), Settings::default());
 		assert_eq!(Settings::default().url(), "ws://localhost:4333");
 		assert_eq!(Settings::new("::1", "4334", "u", "p").url(), "ws://[::1]:4334");
+	}
+
+	#[tokio::test(start_paused = true)]
+	async fn covers_are_asked_for_one_at_a_time_and_kept() {
+		let first = json!({ "name": "First", "duration": 1000, "imageUrl": "http://music/cover/1" });
+		let client = connected(json!({ "song": first }));
+		let seen = Rc::new(Cell::new(0));
+		let into = seen.clone();
+		client.on_state.on(move |changes| into.set(into.get() + usize::from(changes.contains(&Change::Cover))));
+		assert_eq!(client.cover(), None);
+		assert_eq!(client.cover(), None);
+		assert_eq!(sent(&client), [json!({ "event": "proxy" })], "one request at a time");
+		client.on_message(&json!({ "event": "proxy", "data": crate::cover::testing::png(4, 4) }));
+		assert_eq!(seen.get(), 1);
+		let cover = client.cover().unwrap_or_default();
+		assert!(cover.starts_with("data:image/jpeg;base64,"), "{cover}");
+		// Another song of the album: the same cover, not asked for again.
+		client.on_message(&json!({ "event": "song", "data": { "name": "Second", "imageUrl": "http://music/cover/1" } }));
+		assert_eq!(client.cover(), Some(cover));
+		assert_eq!(sent(&client).len(), 1);
+		// Feishin could not load it.
+		client.on_message(&json!({ "event": "song", "data": { "name": "Third", "imageUrl": "http://music/cover/3" } }));
+		assert_eq!(client.cover(), None);
+		client.on_message(&json!({ "event": "error", "data": "404" }));
+		assert_eq!((client.cover(), sent(&client).len()), (None, 2));
+		// No answer: asked again later.
+		client.on_message(&json!({ "event": "song", "data": { "name": "Fourth", "imageUrl": "http://music/cover/4" } }));
+		client.cover();
+		tokio::time::advance(COVER_TIMEOUT).await;
+		client.cover();
+		assert_eq!(sent(&client).len(), 3);
+		tokio::time::advance(Duration::from_millis(1)).await;
+		client.cover();
+		assert_eq!(sent(&client).len(), 4);
+		// No cover at all: nothing to ask for.
+		client.on_message(&json!({ "event": "song", "data": { "name": "Fifth" } }));
+		assert_eq!(client.cover(), None);
 	}
 
 	#[test]
