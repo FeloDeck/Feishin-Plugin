@@ -238,7 +238,7 @@
 		{
 			"UUID": "de.felitendo.feishin.seekdial",
 			"Name": "Seek Dial (Stream Deck +)",
-			"Tooltip": "Shows the current track; rotate to seek, press to play or pause",
+			"Tooltip": "Shows the current track; rotate to seek or change the volume, press to play or pause",
 			"Icon": "imgs/actions/seek/dial-icon",
 			"Controllers": [
 				"Encoder"
@@ -247,7 +247,7 @@
 				"layout": "layouts/seek-dial.json",
 				"Icon": "imgs/actions/seek/dial",
 				"TriggerDescription": {
-					"Rotate": "Seek",
+					"Rotate": "Seek or volume",
 					"Push": "Play / pause",
 					"Touch": "Play / pause"
 				}
