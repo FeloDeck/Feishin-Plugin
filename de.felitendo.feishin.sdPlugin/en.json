@@ -63,10 +63,10 @@
 	},
 	"de.felitendo.feishin.seekdial": {
 		"Name": "Seek Dial (Stream Deck +)",
-		"Tooltip": "Shows the current track; rotate to seek, press to play or pause",
+		"Tooltip": "Shows the current track; rotate to seek or change the volume, press to play or pause",
 		"Encoder": {
 			"TriggerDescription": {
-				"Rotate": "Seek",
+				"Rotate": "Seek or volume",
 				"Push": "Play / pause",
 				"Touch": "Play / pause"
 			}
@@ -75,6 +75,7 @@
 	"Localization": {
 		"offline": "Not connected",
 		"muted": "Muted",
+		"volume": "Volume",
 		"nothing-playing": "Nothing playing",
 		"status-offline": "Feishin offline",
 		"status-password": "Password?",
