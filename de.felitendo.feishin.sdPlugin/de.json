@@ -63,10 +63,10 @@
 	},
 	"de.felitendo.feishin.seekdial": {
 		"Name": "Spulregler (Stream Deck +)",
-		"Tooltip": "Zeigt den aktuellen Titel; Drehen spult, Drücken spielt ab oder pausiert",
+		"Tooltip": "Zeigt den aktuellen Titel; Drehen spult oder ändert die Lautstärke, Drücken spielt ab oder pausiert",
 		"Encoder": {
 			"TriggerDescription": {
-				"Rotate": "Spulen",
+				"Rotate": "Spulen oder Lautstärke",
 				"Push": "Abspielen/Pause",
 				"Touch": "Abspielen/Pause"
 			}
@@ -75,6 +75,7 @@
 	"Localization": {
 		"offline": "Nicht verbunden",
 		"muted": "Stumm",
+		"volume": "Lautstärke",
 		"nothing-playing": "Keine Wiedergabe",
 		"status-offline": "Feishin offline",
 		"status-password": "Passwort?",
