@@ -1,0 +1,51 @@
+{
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/layout.json",
+	"id": "seek-dial-cover",
+	"items": [
+		{
+			"key": "cover",
+			"type": "pixmap",
+			"rect": [12, 8, 62, 62]
+		},
+		{
+			"key": "track",
+			"type": "text",
+			"rect": [82, 8, 108, 22],
+			"font": { "size": 16, "weight": 600 },
+			"alignment": "left",
+			"text-overflow": "ellipsis"
+		},
+		{
+			"key": "artist",
+			"type": "text",
+			"rect": [82, 30, 108, 18],
+			"font": { "size": 13, "weight": 400 },
+			"color": "#b3b3b3",
+			"alignment": "left",
+			"text-overflow": "ellipsis"
+		},
+		{
+			"key": "status",
+			"type": "pixmap",
+			"rect": [82, 55, 14, 14]
+		},
+		{
+			"key": "time",
+			"type": "text",
+			"rect": [100, 52, 90, 20],
+			"font": { "size": 13, "weight": 400 },
+			"alignment": "left"
+		},
+		{
+			"key": "progress",
+			"type": "bar",
+			"rect": [12, 80, 176, 8],
+			"subtype": 4,
+			"bar_fill_c": "#FFFFFF",
+			"bar_bg_c": "#3d3d3d",
+			"border_w": 0,
+			"range": { "min": 0, "max": 100 },
+			"value": 0
+		}
+	]
+}
