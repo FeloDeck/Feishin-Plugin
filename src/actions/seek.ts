@@ -57,8 +57,8 @@ export class Rewind extends RepeatingKeyAction<SeekSettings> {
 export class SeekDial extends FeishinAction<SeekDialSettings> {
 	protected override readonly watches: readonly StateChange[] = ["song", "status", "position", "cover", "volume"];
 
-	/** Per dial: until when the volume shows in place of the time, and the timer that switches back. */
-	readonly #volumeShown = new Map<string, { until: number; timer: NodeJS.Timeout }>();
+	/** Dials that show the volume in place of the time right now, with the timer that switches back. */
+	readonly #volumeShown = new Map<string, NodeJS.Timeout>();
 
 	/**
 	 * Last feedback sent per dial; position updates arrive several times a second, but the display only changes once
@@ -79,8 +79,10 @@ export class SeekDial extends FeishinAction<SeekDialSettings> {
 			return;
 		}
 
-		this.#showVolume(ev.action, settings);
+		this.#showVolume(ev.action);
 		this.run(ev.action, () => feishin.changeVolume(ev.payload.ticks * numberSetting(settings.tickStep, 2)));
+		// The new volume renders the dial, but not when the volume stays (at 0 or 100, or unknown).
+		this.requestRender(ev.action);
 	}
 
 	override onDialDown(ev: DialDownEvent<SeekDialSettings>): void {
@@ -94,22 +96,20 @@ export class SeekDial extends FeishinAction<SeekDialSettings> {
 	/**
 	 * Shows the volume in place of the time for a moment, then the time again.
 	 */
-	#showVolume(action: DialAction, settings: SeekDialSettings): void {
-		const id = action.id;
-		clearTimeout(this.#volumeShown.get(id)?.timer);
+	#showVolume(action: DialAction<SeekDialSettings>): void {
+		clearTimeout(this.#volumeShown.get(action.id));
 		const timer = setTimeout(() => {
-			this.#volumeShown.delete(id);
-			void this.render(action, settings);
+			this.#volumeShown.delete(action.id);
+			this.requestRender(action);
 		}, VOLUME_MS);
-		this.#volumeShown.set(id, { until: Date.now() + VOLUME_MS, timer });
-		void this.render(action, settings);
+		this.#volumeShown.set(action.id, timer);
 	}
 
 	override onWillDisappear(ev: WillDisappearEvent<SeekDialSettings>): Promise<void> | void {
 		this.#sent.delete(ev.action.id);
 		this.#layout.delete(ev.action.id);
 		this.#cover.delete(ev.action.id);
-		clearTimeout(this.#volumeShown.get(ev.action.id)?.timer);
+		clearTimeout(this.#volumeShown.get(ev.action.id));
 		this.#volumeShown.delete(ev.action.id);
 		return super.onWillDisappear(ev);
 	}
@@ -151,8 +151,7 @@ export class SeekDial extends FeishinAction<SeekDialSettings> {
 		}
 
 		// Right after a turn: the volume in place of the time, and on the bar.
-		const shown = this.#volumeShown.get(action.id);
-		if (feishin.isConnected && shown !== undefined && shown.until > Date.now()) {
+		if (feishin.isConnected && this.#volumeShown.has(action.id)) {
 			const volume = feishin.state.volume === null ? null : Math.round(feishin.state.volume);
 			const label = streamDeck.i18n.translate("volume");
 			feedback = {

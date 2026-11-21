@@ -141,7 +141,7 @@ export abstract class FeishinAction<T extends JsonObject = JsonObject> extends S
 
 	#renderAll(): void {
 		for (const action of this.actions) {
-			this.#requestRender(action);
+			this.requestRender(action);
 		}
 	}
 
@@ -149,7 +149,7 @@ export abstract class FeishinAction<T extends JsonObject = JsonObject> extends S
 	 * Renders now, or once {@link MIN_RENDER_INTERVAL_MS} has passed since the last render; the delayed render uses the
 	 * state at that time, so the last change is never lost.
 	 */
-	#requestRender(action: DialAction<T> | KeyAction<T>): void {
+	protected requestRender(action: DialAction<T> | KeyAction<T>): void {
 		if (this.#pendingRender.has(action.id)) {
 			return;
 		}
