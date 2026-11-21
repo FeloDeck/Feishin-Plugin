@@ -48,6 +48,8 @@
 			"cover.on": "Show",
 			"cover.off": "Hide",
 			"settings.dialTurn": "Turning",
+			"turn.seek": "Seek",
+			"turn.volume": "Volume",
 			"guide.title": "How to connect Feishin",
 			"guide.step1": "Open <b>Feishin</b> on this computer and go to <b>Settings → Window → Remote</b>.",
 			"guide.step2": "Turn on <b>Enable remote control server</b>.",
@@ -102,6 +104,8 @@
 			"cover.on": "Anzeigen",
 			"cover.off": "Ausblenden",
 			"settings.dialTurn": "Drehen",
+			"turn.seek": "Spulen",
+			"turn.volume": "Lautstärke",
 			"guide.title": "So verbindest du Feishin",
 			"guide.step1": "Öffne <b>Feishin</b> auf diesem Computer und gehe zu <b>Einstellungen → Fenster → Fernsteuerung</b>.",
 			"guide.step2": "Schalte <b>Server für Fernsteuerung aktivieren</b> ein.",
@@ -141,6 +145,9 @@
 	const timeShows = /** @type {HTMLElement} */ (document.getElementById("time-shows"));
 	const dialCover = /** @type {HTMLElement} */ (document.getElementById("dial-cover"));
 	const lookHeading = /** @type {HTMLElement} */ (document.getElementById("look-heading"));
+	const dialTurn = /** @type {HTMLElement} */ (document.getElementById("dial-turn"));
+	const dialVolumeRow = /** @type {HTMLElement} */ (document.getElementById("dial-volume-row"));
+	const dialSeekRow = /** @type {HTMLElement} */ (document.getElementById("dial-seek-row"));
 
 	/**
 	 * The connection box: open while there is a problem (autoOpen), unless the user opened or closed it (setupOpen).
@@ -151,6 +158,9 @@
 
 	/** The selected action. */
 	let action = "";
+
+	/** Whether turning the Seek Dial changes the volume. Only then it needs the volume hint. */
+	let seekDialVolume = false;
 
 	// The key pictures the volume tiles show, per action.
 	const VOLUME_ICONS = /** @type {Record<string, string>} */ ({
@@ -164,6 +174,7 @@
 	const [getShowTime, setShowTime] = SDPIComponents.useSettings("showTime", () => refreshTiles());
 	const [getTimeAt, setTimeAt] = SDPIComponents.useSettings("timeAt", () => refreshTiles());
 	const [getTimeShows, setTimeShows] = SDPIComponents.useSettings("timeShows", () => refreshTiles());
+	const [getDialTurn, setDialTurn] = SDPIComponents.useSettings("dialTurn", () => refreshTiles());
 
 	// Rows like in obs-tools: 30 % for the label, the rest for the field. sdpi-item has a fixed 95 px + 241 px grid.
 	for (const item of document.querySelectorAll("sdpi-item")) {
@@ -228,7 +239,7 @@
 		statusHint.textContent = t(`status.${next.status}.hint`)
 			.replace("{address}", next.address)
 			.replace("{detail}", next.detail || next.address);
-		volumeUnknown.hidden = next.status !== "connected" || next.volumeKnown !== false;
+		renderVolumeHint();
 
 		// A new problem opens the connection box, a working connection closes it. "Connecting" while Feishin is away
 		// changes nothing, or the box would flicker with each try.
@@ -239,6 +250,11 @@
 		}
 		guide.hidden = next.status === "connected";
 		renderBox();
+	}
+
+	function renderVolumeHint() {
+		const wanted = action !== "de.felitendo.feishin.seekdial" || seekDialVolume;
+		volumeUnknown.hidden = !wanted || connection?.status !== "connected" || connection.volumeKnown !== false;
 	}
 
 	function renderBox() {
@@ -257,12 +273,13 @@
 			showTime: await getShowTime(),
 			timeAt: await getTimeAt(),
 			timeShows: await getTimeShows(),
+			dialTurn: await getDialTurn(),
 		});
 	}
 
 	/**
-	 * The rows of "On the key". A click renders them with the new value right away, because sdpi-components saves a
-	 * setting only after a short wait.
+	 * The rows with tiles or choices side by side. A click renders them with the new value right away, because
+	 * sdpi-components saves a setting only after a short wait.
 	 * @param {Record<string, unknown>} s The settings the rows need.
 	 */
 	function renderLook(s) {
@@ -312,6 +329,16 @@
 		}
 
 		if (action === "de.felitendo.feishin.seekdial") {
+			const turn = s.dialTurn === "volume" ? "volume" : "seek";
+			renderSegments(dialTurn, "turn", ["seek", "volume"], turn, (option) => {
+				setDialTurn(option);
+				renderLook({ ...s, dialTurn: option });
+			});
+			dialVolumeRow.hidden = turn !== "volume";
+			dialSeekRow.hidden = turn === "volume";
+			seekDialVolume = turn === "volume";
+			renderVolumeHint();
+
 			const shown = s.showCover !== false;
 			renderSegments(dialCover, "cover", ["on", "off"], shown ? "on" : "off", (option) => {
 				setShowCover(option === "on");

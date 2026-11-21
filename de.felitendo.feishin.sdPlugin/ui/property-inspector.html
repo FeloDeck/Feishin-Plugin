@@ -104,12 +104,9 @@
 
 			<div class="action-section" hidden data-actions="de.felitendo.feishin.seekdial">
 				<sdpi-item label="Turning" data-i18n-label="settings.dialTurn">
-					<select class="choice" data-setting="dialTurn" data-default="seek" hidden>
-						<option value="seek">Seek</option>
-						<option value="volume">Volume</option>
-					</select>
+					<div id="dial-turn" class="segmented" role="radiogroup"></div>
 				</sdpi-item>
-				<sdpi-item label="Step per tick" data-i18n-label="settings.dialStep">
+				<sdpi-item id="dial-volume-row" label="Step per tick" data-i18n-label="settings.dialStep" hidden>
 					<select class="choice" data-setting="tickStep" data-default="2" hidden>
 						<option value="1">1 %</option>
 						<option value="2">2 %</option>
@@ -117,7 +114,7 @@
 						<option value="10">10 %</option>
 					</select>
 				</sdpi-item>
-				<sdpi-item label="Seek per tick" data-i18n-label="settings.dialSeek">
+				<sdpi-item id="dial-seek-row" label="Seek per tick" data-i18n-label="settings.dialSeek">
 					<select class="choice" data-setting="tickSeconds" data-default="5" hidden>
 						<option value="1">1 s</option>
 						<option value="2">2 s</option>
