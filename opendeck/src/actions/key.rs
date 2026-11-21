@@ -44,6 +44,8 @@ struct Base {
 	last_render: Option<Instant>,
 	pending_render: Option<Timer>,
 	repeat: Option<Timer>,
+	/// Runs out a moment after the last turn of the dial, see `note_turn`.
+	turned: Option<Timer>,
 	screen: Screen,
 }
 
@@ -113,7 +115,7 @@ impl Key {
 		b.visible = false;
 		b.screen = Screen::default();
 		b.last_render = None;
-		for timer in [b.pending_render.take(), b.repeat.take()].into_iter().flatten() {
+		for timer in [b.pending_render.take(), b.repeat.take(), b.turned.take()].into_iter().flatten() {
 			timer.clear();
 		}
 	}
@@ -176,6 +178,25 @@ impl Key {
 			return;
 		}
 		self.behavior().render(self);
+	}
+
+	/// For ms after a turn of the dial, `just_turned()` is true. The key draws again when it is over.
+	pub fn note_turn(&self, ms: f64) {
+		let me = self.me.clone();
+		let timer = set_timeout(ms, move || {
+			if let Some(me) = me.upgrade() {
+				me.b.borrow_mut().turned = None;
+				me.request_render();
+			}
+		});
+		let old = self.b.borrow_mut().turned.replace(timer);
+		if let Some(old) = old {
+			old.clear();
+		}
+	}
+
+	pub fn just_turned(&self) -> bool {
+		self.b.borrow().turned.is_some()
 	}
 
 	// ----- commands -----

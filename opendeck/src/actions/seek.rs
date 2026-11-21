@@ -6,6 +6,7 @@ use super::{Behavior, Key, Kind, positive_or};
 use crate::feishin::{Change, Playback};
 use crate::i18n::t;
 use crate::images::no_cover;
+use crate::js::round;
 
 /// 300 → "5:00", 3723 → "1:02:03"
 pub fn format_time(seconds: f64) -> String {
@@ -36,7 +37,7 @@ pub static FORWARD: Kind =
 pub static REWIND: Kind = Kind { uuid: "de.felitendo.feishin.rewind", name: "Rewind", repeats: true, behavior: &Seek(-1.0), ..Kind::BASE };
 
 // ----- Seek dial (Stream Deck +): shows the track, with the album art on the left (unless turned -----
-// off). Turn to seek, press or touch to play or pause.
+// off). Turn to seek or to change the volume, press or touch to play or pause.
 
 #[derive(Deserialize)]
 #[serde(default, rename_all = "camelCase")]
@@ -44,22 +45,36 @@ pub(super) struct SeekDialSettings {
 	/// Seconds per tick.
 	tick_seconds: f64,
 	show_cover: bool,
+	/// What turning does: "seek" or "volume".
+	dial_turn: String,
+	/// Volume per tick.
+	tick_step: f64,
 }
 
 impl Default for SeekDialSettings {
 	fn default() -> Self {
-		SeekDialSettings { tick_seconds: 0.0, show_cover: true }
+		SeekDialSettings { tick_seconds: 0.0, show_cover: true, dial_turn: String::new(), tick_step: 0.0 }
 	}
 }
 
 const LAYOUT_COVER: &str = "layouts/seek-dial-cover.json";
 const LAYOUT_PLAIN: &str = "layouts/seek-dial.json";
+/// How long the volume shows after a turn.
+const VOLUME_MS: f64 = 1500.0;
 
 struct SeekDial;
 
 impl Behavior for SeekDial {
 	fn rotate(&self, k: &Key, ticks: f64) -> bool {
-		k.feishin().seek_by(ticks * positive_or(k.settings::<SeekDialSettings>().tick_seconds, 5.0))
+		let s: SeekDialSettings = k.settings();
+		if s.dial_turn != "volume" {
+			return k.feishin().seek_by(ticks * positive_or(s.tick_seconds, 5.0));
+		}
+		k.note_turn(VOLUME_MS);
+		let sent = k.feishin().change_volume(ticks * positive_or(s.tick_step, 2.0));
+		// The new volume draws the dial, but not when the volume stays (at 0 or 100, or unknown).
+		k.request_render();
+		sent
 	}
 
 	fn dial_press(&self, k: &Key) -> bool {
@@ -79,7 +94,7 @@ impl Behavior for SeekDial {
 		let empty = |track: String| -> Value {
 			json!({ "artist": "", "time": "", "status": { "enabled": false }, "progress": { "value": 0 }, "track": track })
 		};
-		let feedback = match &state.song {
+		let mut feedback = match &state.song {
 			_ if !feishin.connected() => empty(t("offline")),
 			None => empty(t("nothing-playing")),
 			Some(song) => {
@@ -96,6 +111,20 @@ impl Behavior for SeekDial {
 				})
 			}
 		};
+		// Right after a turn: the volume in place of the time, and on the bar.
+		if feishin.connected() && k.just_turned() {
+			let volume = state.volume.map(|volume| round(volume) as i64);
+			let label = t("volume");
+			feedback["time"] = match volume {
+				None => format!("{label} –"),
+				Some(0) => t("muted"),
+				Some(volume) => format!("{label} {volume}%"),
+			}
+			.into();
+			let icon = if volume == Some(0) { "dial-muted" } else { "dial" };
+			feedback["status"] = json!({ "enabled": true, "value": format!("imgs/actions/volume/{icon}.svg") });
+			feedback["progress"] = json!({ "value": volume.unwrap_or(0) });
+		}
 		k.set_feedback(feedback);
 	}
 }
@@ -103,7 +132,7 @@ impl Behavior for SeekDial {
 pub static SEEK_DIAL: Kind = Kind {
 	uuid: "de.felitendo.feishin.seekdial",
 	name: "SeekDial",
-	watches: &[Change::Song, Change::Playback, Change::Position, Change::Cover],
+	watches: &[Change::Song, Change::Playback, Change::Position, Change::Cover, Change::Volume],
 	behavior: &SeekDial,
 	..Kind::BASE
 };
@@ -170,6 +199,34 @@ mod tests {
 			k.request_render();
 			later().await;
 			assert_eq!(sent(&sd, "setFeedback").iter().filter(|f| f.get("cover").is_some()).count(), 2);
+		})
+		.await;
+	}
+
+	#[tokio::test(start_paused = true)]
+	async fn the_seek_dial_can_change_the_volume() {
+		local(async {
+			let song = json!({ "name": "Song", "duration": 240000 });
+			let settings = json!({ "dialTurn": "volume", "tickStep": "5", "showCover": false });
+			let (k, sd) = key(&SEEK_DIAL, json!({ "status": "paused", "position": 60, "volume": 40, "song": song }), settings);
+			k.rotate(2.0);
+			assert_eq!(to_feishin(k.feishin()), [json!({ "event": "volume", "volume": 50 })]);
+			later().await;
+			let last = sent(&sd, "setFeedback").pop().unwrap_or_default();
+			assert_eq!(last["time"], "Volume 50%");
+			assert_eq!(last["status"], json!({ "enabled": true, "value": "imgs/actions/volume/dial.svg" }));
+			assert_eq!(last["progress"], json!({ "value": 50 }));
+			// Then the time again.
+			tokio::time::sleep(std::time::Duration::from_millis(VOLUME_MS as u64)).await;
+			let last = sent(&sd, "setFeedback").pop().unwrap_or_default();
+			assert_eq!(last["time"], "1:00 / 4:00");
+			assert_eq!(last["progress"], json!({ "value": 25 }));
+			// At 0: "Muted".
+			k.rotate(-10.0);
+			later().await;
+			let last = sent(&sd, "setFeedback").pop().unwrap_or_default();
+			assert_eq!(last["time"], "Muted");
+			assert_eq!(last["status"]["value"], "imgs/actions/volume/dial-muted.svg");
 		})
 		.await;
 	}
