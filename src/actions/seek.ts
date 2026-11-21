@@ -21,7 +21,7 @@ type SeekDialSettings = {
 	/** Seconds to jump per dial tick. */
 	tickSeconds?: string;
 	/** Show the album art on the dial screen (default: on). */
-	dialCover?: "on" | "off";
+	showCover?: boolean;
 };
 
 const LAYOUT_COVER = "layouts/seek-dial-cover.json";
@@ -85,7 +85,7 @@ export class SeekDial extends FeishinAction<SeekDialSettings> {
 			return;
 		}
 
-		const withCover = settings.dialCover !== "off";
+		const withCover = settings.showCover !== false;
 		const layout = withCover ? LAYOUT_COVER : LAYOUT_PLAIN;
 		if (this.#layout.get(action.id) !== layout) {
 			this.#layout.set(action.id, layout);
