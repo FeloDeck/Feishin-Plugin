@@ -244,7 +244,7 @@
 				"Encoder"
 			],
 			"Encoder": {
-				"layout": "layouts/seek-dial.json",
+				"layout": "layouts/seek-dial-cover.json",
 				"Icon": "imgs/actions/seek/dial",
 				"TriggerDescription": {
 					"Rotate": "Seek",

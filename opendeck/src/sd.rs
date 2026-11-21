@@ -72,6 +72,11 @@ impl Sd {
 		self.to_context("setFeedback", context, Some(payload));
 	}
 
+	/// layout: a file of the plugin folder, like "layouts/seek-dial.json".
+	pub fn set_feedback_layout(&self, context: &str, layout: &str) {
+		self.to_context("setFeedbackLayout", context, Some(json!({ "layout": layout })));
+	}
+
 	pub fn show_alert(&self, context: &str) {
 		self.to_context("showAlert", context, None);
 	}

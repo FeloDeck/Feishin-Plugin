@@ -9,6 +9,7 @@ import streamDeck, {
 } from "@elgato/streamdeck";
 
 import { feishin, type StateChange } from "../feishin";
+import { svgImage } from "../images";
 import { FeishinAction, numberSetting, RepeatingKeyAction } from "./feishin-action";
 
 type SeekSettings = {
@@ -19,7 +20,13 @@ type SeekSettings = {
 type SeekDialSettings = {
 	/** Seconds to jump per dial tick. */
 	tickSeconds?: string;
+	/** Show the album art on the dial screen (default: on). */
+	showCover?: boolean;
 };
+
+const LAYOUT_COVER = "layouts/seek-dial-cover.json";
+const LAYOUT_PLAIN = "layouts/seek-dial.json";
+const NO_COVER = "imgs/actions/seek/no-cover.svg";
 
 @action({ UUID: "de.felitendo.feishin.forward" })
 export class FastForward extends RepeatingKeyAction<SeekSettings> {
@@ -40,13 +47,19 @@ export class Rewind extends RepeatingKeyAction<SeekSettings> {
  */
 @action({ UUID: "de.felitendo.feishin.seekdial" })
 export class SeekDial extends FeishinAction<SeekDialSettings> {
-	protected override readonly watches: readonly StateChange[] = ["song", "status", "position"];
+	protected override readonly watches: readonly StateChange[] = ["song", "status", "position", "cover"];
 
 	/**
 	 * Last feedback sent per dial; position updates arrive several times a second, but the display only changes once
 	 * per second.
 	 */
 	readonly #sent = new Map<string, string>();
+
+	/** Layout last set per dial. */
+	readonly #layout = new Map<string, string>();
+
+	/** Cover last sent per dial. */
+	readonly #cover = new Map<string, string>();
 
 	override onDialRotate(ev: DialRotateEvent<SeekDialSettings>): void {
 		this.run(ev.action, () => feishin.seekBy(ev.payload.ticks * numberSetting(ev.payload.settings.tickSeconds, 5)));
@@ -62,12 +75,23 @@ export class SeekDial extends FeishinAction<SeekDialSettings> {
 
 	override onWillDisappear(ev: WillDisappearEvent<SeekDialSettings>): Promise<void> | void {
 		this.#sent.delete(ev.action.id);
+		this.#layout.delete(ev.action.id);
+		this.#cover.delete(ev.action.id);
 		return super.onWillDisappear(ev);
 	}
 
-	protected override async render(action: DialAction | KeyAction): Promise<void> {
+	protected override async render(action: DialAction | KeyAction, settings: SeekDialSettings): Promise<void> {
 		if (!action.isDial()) {
 			return;
+		}
+
+		const withCover = settings.showCover !== false;
+		const layout = withCover ? LAYOUT_COVER : LAYOUT_PLAIN;
+		if (this.#layout.get(action.id) !== layout) {
+			this.#layout.set(action.id, layout);
+			this.#sent.delete(action.id);
+			this.#cover.delete(action.id);
+			await action.setFeedbackLayout(layout);
 		}
 
 		const song = feishin.state.song;
@@ -90,6 +114,15 @@ export class SeekDial extends FeishinAction<SeekDialSettings> {
 				// Whole percent keeps updates to roughly one per second, together with the time.
 				progress: { value: song.duration > 0 ? Math.round((position / song.duration) * 100) : 0 },
 			};
+		}
+
+		// The cover is big, so it only goes out when it changed, not with every time update.
+		if (withCover) {
+			const cover = (feishin.isConnected && song ? feishin.cover() : undefined) ?? svgImage(NO_COVER);
+			if (this.#cover.get(action.id) !== cover) {
+				this.#cover.set(action.id, cover);
+				await action.setFeedback({ cover });
+			}
 		}
 
 		const json = JSON.stringify(feedback);

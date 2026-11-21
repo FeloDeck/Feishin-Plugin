@@ -28,6 +28,7 @@
 				"Feishin hasn't reported its volume yet – it only does that when the volume changes. Change the volume in Feishin once and these controls will work (only needed once).",
 			"section.controls": "Controls",
 			"section.look": "On the key",
+			"section.display": "On the display",
 			"settings.volumeStep": "Step",
 			"settings.volume": "Volume",
 			"tiles.off": "Off",
@@ -43,6 +44,9 @@
 			"settings.seekStep": "Jump by",
 			"settings.dialStep": "Step per tick",
 			"settings.dialSeek": "Seek per tick",
+			"settings.dialCover": "Album art",
+			"cover.on": "Show",
+			"cover.off": "Hide",
 			"guide.title": "How to connect Feishin",
 			"guide.step1": "Open <b>Feishin</b> on this computer and go to <b>Settings → Window → Remote</b>.",
 			"guide.step2": "Turn on <b>Enable remote control server</b>.",
@@ -77,6 +81,7 @@
 				"Feishin hat seine Lautstärke noch nicht gemeldet – das passiert erst, wenn sie sich ändert. Ändere die Lautstärke einmal in Feishin, danach funktionieren diese Regler (nur einmal nötig).",
 			"section.controls": "Bedienung",
 			"section.look": "Auf der Taste",
+			"section.display": "Auf dem Display",
 			"settings.volumeStep": "Schrittweite",
 			"settings.volume": "Lautstärke",
 			"tiles.off": "Aus",
@@ -92,6 +97,9 @@
 			"settings.seekStep": "Springen um",
 			"settings.dialStep": "Schritt pro Raste",
 			"settings.dialSeek": "Spulen pro Raste",
+			"settings.dialCover": "Albumcover",
+			"cover.on": "Anzeigen",
+			"cover.off": "Ausblenden",
 			"guide.title": "So verbindest du Feishin",
 			"guide.step1": "Öffne <b>Feishin</b> auf diesem Computer und gehe zu <b>Einstellungen → Fenster → Fernsteuerung</b>.",
 			"guide.step2": "Schalte <b>Server für Fernsteuerung aktivieren</b> ein.",
@@ -129,6 +137,8 @@
 	const timeTiles = /** @type {HTMLElement} */ (document.getElementById("time-tiles"));
 	const timeShowsRow = /** @type {HTMLElement} */ (document.getElementById("time-shows-row"));
 	const timeShows = /** @type {HTMLElement} */ (document.getElementById("time-shows"));
+	const dialCover = /** @type {HTMLElement} */ (document.getElementById("dial-cover"));
+	const lookHeading = /** @type {HTMLElement} */ (document.getElementById("look-heading"));
 
 	/**
 	 * The connection box: open while there is a problem (autoOpen), unless the user opened or closed it (setupOpen).
@@ -169,6 +179,8 @@
 	client.getConnectionInfo().then(({ info, actionInfo }) => {
 		strings = pickStrings(info?.application?.language);
 		action = actionInfo.action;
+		// A dial has a display, not a key.
+		lookHeading.dataset.i18n = action === "de.felitendo.feishin.seekdial" ? "section.display" : "section.look";
 		localize();
 		if (connection) {
 			renderConnection(connection);
@@ -294,6 +306,14 @@
 			renderSegments(timeShows, "shows", ["left", "played"], shows, (option) => {
 				setTimeShows(option);
 				renderLook({ ...s, timeShows: option });
+			});
+		}
+
+		if (action === "de.felitendo.feishin.seekdial") {
+			const shown = s.showCover !== false;
+			renderSegments(dialCover, "cover", ["on", "off"], shown ? "on" : "off", (option) => {
+				setShowCover(option === "on");
+				renderLook({ ...s, showCover: option === "on" });
 			});
 		}
 		repaint();
