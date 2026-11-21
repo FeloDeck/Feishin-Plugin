@@ -59,7 +59,7 @@
 		without a visible part is hidden too.
 	-->
 	<div id="action-settings">
-		<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown de.felitendo.feishin.mute de.felitendo.feishin.volumedial">
+		<div class="action-section" hidden data-actions="de.felitendo.feishin.volumeup de.felitendo.feishin.volumedown de.felitendo.feishin.mute de.felitendo.feishin.volumedial de.felitendo.feishin.seekdial">
 			<p id="volume-unknown" class="hint" hidden data-i18n="volume.unknown">Feishin hasn't reported its volume yet – it only does that when the volume changes. Change the volume in Feishin once and these controls will work (only needed once).</p>
 		</div>
 
@@ -103,7 +103,18 @@
 			</div>
 
 			<div class="action-section" hidden data-actions="de.felitendo.feishin.seekdial">
-				<sdpi-item label="Seek per tick" data-i18n-label="settings.dialSeek">
+				<sdpi-item label="Turning" data-i18n-label="settings.dialTurn">
+					<div id="dial-turn" class="segmented" role="radiogroup"></div>
+				</sdpi-item>
+				<sdpi-item id="dial-volume-row" label="Step per tick" data-i18n-label="settings.dialStep" hidden>
+					<select class="choice" data-setting="tickStep" data-default="2" hidden>
+						<option value="1">1 %</option>
+						<option value="2">2 %</option>
+						<option value="5">5 %</option>
+						<option value="10">10 %</option>
+					</select>
+				</sdpi-item>
+				<sdpi-item id="dial-seek-row" label="Seek per tick" data-i18n-label="settings.dialSeek">
 					<select class="choice" data-setting="tickSeconds" data-default="5" hidden>
 						<option value="1">1 s</option>
 						<option value="2">2 s</option>

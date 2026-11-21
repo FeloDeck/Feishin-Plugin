@@ -93,7 +93,7 @@ Feishin only reports its volume after the volume changes. If a volume key says t
 | Fast Forward | Jump 5 to 60 seconds ahead. Hold to keep going. |
 | Rewind | Jump 5 to 60 seconds back. Hold to keep going. |
 | Volume Dial (Stream Deck +) | Turn for volume, press to mute. |
-| Seek Dial (Stream Deck +) | Shows the track, how far it is and the album art. Turn to seek, press to play or pause. |
+| Seek Dial (Stream Deck +) | Shows the track, how far it is and the album art. Turn to seek or change the volume, press to play or pause. |
 
 Play/Pause, Shuffle, Repeat and Favorite show what Feishin is doing. The time and the volume can go above or below the icon, or you can hide them. Play/Pause can show the album art instead of its icon. Everything is in English and German.
 
