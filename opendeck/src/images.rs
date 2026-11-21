@@ -34,6 +34,11 @@ pub fn svg_image(path: &str) -> String {
 	data_url(icon(path))
 }
 
+/// What the seek dial shows while there is no cover (yet).
+pub fn no_cover() -> String {
+	data_url(include_str!("../../de.felitendo.feishin.sdPlugin/imgs/actions/seek/no-cover.svg"))
+}
+
 /// Keys are drawn on 144 x 144.
 const KEY_SIZE: f64 = 144.0;
 /// The font of the titles OpenDeck draws (font size 11 is about 22 px on a key), but bold to read it

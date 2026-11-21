@@ -59,6 +59,10 @@ struct Screen {
 	state: Option<u16>,
 	/// The touch strip content as JSON text.
 	feedback: Option<String>,
+	/// The layout of the touch strip, once set.
+	layout: Option<String>,
+	/// Items of the touch strip sent on their own, as JSON text by key.
+	items: HashMap<String, String>,
 }
 
 impl Key {
@@ -282,6 +286,34 @@ impl Key {
 		}
 		self.b.borrow_mut().screen.feedback = Some(text);
 		self.sd.set_feedback(&self.context, feedback);
+	}
+
+	/// The layout of the touch strip. A new layout starts empty, so everything goes out again.
+	pub fn set_feedback_layout(&self, layout: &str) {
+		{
+			let screen = &mut self.b.borrow_mut().screen;
+			if screen.layout.as_deref() == Some(layout) {
+				return;
+			}
+			screen.layout = Some(layout.to_string());
+			screen.feedback = None;
+			screen.items.clear();
+		}
+		self.sd.set_feedback_layout(&self.context, layout);
+	}
+
+	/// One item of the touch strip on its own, like a big picture that should not go out again with
+	/// every change of the rest.
+	pub fn set_feedback_item(&self, key: &str, value: Value) {
+		let text = value.to_string();
+		{
+			let screen = &mut self.b.borrow_mut().screen;
+			if screen.items.get(key) == Some(&text) {
+				return;
+			}
+			screen.items.insert(key.to_string(), text);
+		}
+		self.sd.set_feedback(&self.context, Value::Object(Map::from_iter([(key.to_string(), value)])));
 	}
 }
 
